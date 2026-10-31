@@ -86,7 +86,7 @@ Each rule shows its module source. Numbers come from `docs/research/model-values
 Each level lists the modules, skill, scenario, state/action relationship (what the player does and which rule decides the
 outcome), feedback in Hebrew (success / failure), the misconception it catches, and transfer evidence.
 Hebrew lines are proposals. Wrap numbers, units and %, ג/ל tokens in `<bdi>` in the UI. Titles are the handoff's exact
-titles; the Hebrew titles are proposals.
+titles; the Hebrew titles are the in-game titles from `src/rules/levels.ts`.
 
 ### World 1: The Sea and the Shore · הים והחוף
 
@@ -126,12 +126,12 @@ titles; the Hebrew titles are proposals.
 - **Misconception:** **LS**.
 - **Transfer evidence:** Level 5 (reading ג/ל without arrows). Level 15's optional monsoon line (the same rule at a continental scale).
 
-#### 5. Transfer, the forecaster's map · העברה: המפה של החזאי
+#### 5. Transfer, the forecaster's map · מפת החזאי
 - **Modules:** https://geography.workbook.co.il/grade-8/chapter-3/weather-phenomena ("מפות שמציגות את אזורי הלחץ נקראות מפות סינופטיות … מטאורולוגים קוראים מפות אלה כדי לחזות").
 - **Skill:** read a synoptic-style map (letters only) and predict the path.
-- **Scenario:** plan view with only ג/ל letters, relief and a target (for example a thirsty orchard in the Jezreel Valley). The layout is rotated or mirrored compared with Level 3, so a memorized slot fails. No arrows. Place one token and launch.
+- **Scenario (as built):** plan view with only ג/ל letters, relief and the fields on the Samaria slopes. A ג sits over the sea and there are four ל slots (s1–s4); only `s2`, east of the hills, works. The layout differs from Level 3, so a memorized slot fails. No arrows. Place one token and launch.
 - **State/action:** one token placement, then flight with lateral steering only. **Rule:** the same wind field as Level 3.
-- **Feedback:** ✔ «קראתם מפה סינופטית כמו חזאים – מ־<bdi>ג</bdi> אל <bdi>ל</bdi>, בלי חצים.» ✘ «המסלול יצא מה־<bdi>ג</bdi> ונמשך אל ה־<bdi>ל</bdi> הקרוב ביותר – לא אל המטע. איפה צריך לשים את ה־<bdi>ל</bdi> כדי שהרוח תעבור מעליו?»
+- **Feedback:** ✔ «קראתם מפה סינופטית כמו חזאים – מ־<bdi>ג</bdi> אל <bdi>ל</bdi>, בלי חצים.» ✘ «המסלול יצא מה־<bdi>ג</bdi> ונמשך אל ה־<bdi>ל</bdi> שהנחתם – לא אל השדות. איפה צריך לשים את ה־<bdi>ל</bdi> כדי שהרוח תעבור מעליו?»
 - **Misconception:** **LH**.
 - **Transfer evidence:** **first-attempt success without a hint** on an unseen layout. Log the token slot chosen first.
 
@@ -155,7 +155,7 @@ titles; the Hebrew titles are proposals.
 - **Misconception:** **SD**, HV.
 - **Transfer evidence:** Level 9 (Hermon vs the Hula floor), Level 18 (snow in Jerusalem and on Hermon, unaided).
 
-#### 8. Rain shadow · צל גשם
+#### 8. Rain shadow · צל הגשם
 - **Modules:** https://geography.workbook.co.il/grade-9/chapter-2/israel-climate ("מעבר לרכס האוויר יורד ומתייבש … מזרחית לקו הרכס נוצר צל גשם שבו משתרע מדבר יהודה"), https://geography.workbook.co.il/grade-9/chapter-2/natural-water-sources ("אקוויפר ההר נטען מן הגשם שמחלחל בהרי יהודה ושומרון"; watershed along the mountain spine), https://geography.workbook.co.il/grade-9/chapter-2/landform-belts (the sharp drop to the rift).
 - **Skill:** windward vs lee: descending air warms and its RH falls, so the east of the ridge stays dry.
 - **Scenario:** fill the mountain aquifer's recharge zone (ridge and western slopes) with one storm. A bonus sign east of the ridge («הפריחו את המדבר!») is the trap. Stars come from water delivered into the recharge zone.
@@ -165,7 +165,7 @@ titles; the Hebrew titles are proposals.
 - **Transfer evidence:** Level 10 (predict the wet and shadow sides of an unseen ridge), Level 17 (avoid the shadow while filling the Kinneret).
 - **Note:** say «התאדה בחזרה לאדים», never «נעלם». The water still exists as vapor (water is conserved, as COMMON.md requires).
 
-#### 9. Hermon · החרמון
+#### 9. Hermon · חרמון
 - **Modules:** https://geography.workbook.co.il/grade-9/chapter-2/natural-water-sources ("הירדן נוצר ממפגש של נחלים איתנים שמקורם בשלג ובמשקעים של החרמון"; Dan, Banias, Hatzbani), https://geography.workbook.co.il/grade-9/chapter-2/landform-belts (Hermon about 2,236 m), https://geography.workbook.co.il/grade-9/chapter-2/israel-climate (altitude cools; the north gets more).
 - **Skill:** at high altitude even a mild storm gives snow. The snowpack is stored water that feeds the Jordan's sources in spring.
 - **Scenario:** climb the northern current up the Hermon. At the summit, snow. A time-lapse shows spring melt flowing into the three streams.
@@ -174,12 +174,13 @@ titles; the Hebrew titles are proposals.
 - **Misconception:** **SD** (Hermon is inland *and* high; the low inland Hula gets only rain).
 - **Transfer evidence:** Level 18 (snow on Hermon without labels).
 
-#### 10. Transfer, a new ridge · העברה: רכס חדש
+#### 10. Transfer, a new ridge · רכס חדש
 - **Modules:** https://geography.workbook.co.il/grade-9/chapter-2/israel-climate ("כיוון המדרון מכריע אם המדרון פונה אל הרוחות הגשומות מן הים או מסתתר מאחורי הרכס"), https://geography.workbook.co.il/grade-9/chapter-2/landform-belts.
 - **Skill:** windward/lee from the wind direction alone, on a ridge never seen before.
-- **Scenario:** the Galilee at night, with lightning (visual only; no term taught). An unlabeled ridge (schematic, about 1,200 m, Meron-like). **Use an east–west ridge** (the Galilee's ridges run roughly E–W) with a south-west wind from the ג/ל letters, so the *south*-facing slope is windward. "West is always wet" then fails, while the geography stays real. The player marks the wet side and the shadow side, then launches to check.
+- **Scenario (as built):** the Galilee at night, with lightning (visual only; no term taught), and no labels. ענני starts over the Kinneret with a ג to the south. Two ל slots, `west` and `east`; only `west` pulls the air *up the eastern slope* to the forest below Safed. So in this level the wet side is the **east**-facing slope, which breaks the "west is always wet" shortcut.
+- **Curriculum caution (reported to the lead):** in Israel a moist rain-bearing wind from the east is unusual; easterlies are usually dry desert air (weather-phenomena: khamsin; israel-climate: the rainy winds come from the sea). The rule being taught (the windward slope gets the rain) is correct, and the moisture here comes from the Kinneret. My original proposal avoided this: an east–west Galilee ridge with a south-west wind, so the *south* slope is windward. Either way, the success line must stay general («הצד שפונה אל הרוח הוא הצד הגשום») and must not suggest that easterly winds normally bring rain to Israel.
 - **State/action:** one prediction (tap a side), then flight. **Rule:** the windward slope is the one facing the incoming wind → lift; the opposite slope → descent and drying.
-- **Feedback:** ✔ «צדקתם: הצד שפונה אל הרוח קיבל את הגשם, והצד שמאחורי הרכס נשאר בצל גשם.» ✘ «סימנתם את הצד המזרחי כרטוב, אבל הרוח הגיעה מדרום־מערב – הצד הדרומי פגש אותה ראשון.»
+- **Feedback:** ✔ «צדקתם: הצד שפונה אל הרוח קיבל את הגשם, והצד שמאחורי הרכס נשאר בצל גשם.» ✘ «השקע שהנחתם משך את האוויר הרחק מהמדרון. רק כשהרוח נושבת אל המדרון, האוויר נאלץ לעלות ולהתקרר.»
 - **Misconception:** **EW**, plus memorizing "west = wet".
 - **Transfer evidence:** **prediction correct on the first attempt, unaided, on a new ridge orientation**. Log prediction vs outcome separately from the flight result.
 
@@ -212,7 +213,7 @@ titles; the Hebrew titles are proposals.
 - **Misconception:** **KH**, HR.
 - **Transfer evidence:** Level 18 (a hazard appears without labels). The player avoids hot, dry cells on the first attempt.
 
-#### 14. Climograph detective · בלש הקלימוגרפים
+#### 14. Climograph detective · בלש הקלימוגרף
 - **Modules:** https://geography.workbook.co.il/grade-8/chapter-3/climate-zones (how to read a climograph; "אם הגשם בחורף … = ים תיכוני … אם כמעט ללא גשם כלל = מדברי"; Tel Aviv 520, Eilat 25), https://geography.workbook.co.il/grade-9/chapter-2/israel-climate (three climates; steppe around the aridity line).
 - **Skill:** link a climograph (monthly temperature line plus rain bars) to a climate type and place.
 - **Scenario:** three climographs, three cities: Tel Aviv (Mediterranean, about 520 mm), Be'er Sheva (steppe, about 200 mm), Eilat (desert, about 25 mm). Fly a "season" to each city so its bars match.
@@ -221,7 +222,7 @@ titles; the Hebrew titles are proposals.
 - **Misconception:** RN. Climograph misreading (summer rain = Mediterranean).
 - **Transfer evidence:** end card: one **unlabeled** fourth climograph (Jerusalem: winter-only, about 550 mm, summer 26 / winter 9 °C, from climate-zones) to classify, first try unaided.
 
-#### 15. Transfer, summer stays dry · העברה: הקיץ נשאר יבש
+#### 15. Transfer, summer stays dry · הקיץ נשאר יבש
 - **Modules:** https://geography.workbook.co.il/grade-9/chapter-2/israel-climate ("בקיץ החגורה נעה צפונה ומשתלטת על האזור, ולכן אין כאן כמעט גשמי קיץ"), https://geography.workbook.co.il/grade-8/chapter-3/weather-phenomena (in a רמה "אוויר יורד, מתחמם, מוריד לחות"; "קיץ ישראלי הוא בעצם רמה קבועה"), https://geography.workbook.co.il/grade-8/chapter-3/climate-zones (almost no rain June–September).
 - **Skill:** a ג (sinking air) prevents saturation; the season decides.
 - **Scenario:** summer, a ג over Israel. ענני can't rise or rain. The goal flips: carry water out to sea and wait for winter with the season dial.
@@ -251,11 +252,11 @@ titles; the Hebrew titles are proposals.
 - **Misconception:** **KC**, EW.
 - **Transfer evidence:** Level 18 (Kinneret objective without labels).
 
-#### 18. Final, the great storm (no hints) · הגמר: הסערה הגדולה
+#### 18. Final, the great storm (no hints) · הסערה הגדולה
 - **Modules:** all seven: https://geography.workbook.co.il/grade-8/chapter-3/atmosphere, https://geography.workbook.co.il/grade-8/chapter-3/sun-energy, https://geography.workbook.co.il/grade-8/chapter-3/weather-phenomena, https://geography.workbook.co.il/grade-8/chapter-3/climate-zones, https://geography.workbook.co.il/grade-9/chapter-2/israel-climate, https://geography.workbook.co.il/grade-9/chapter-2/natural-water-sources, https://geography.workbook.co.il/grade-9/chapter-2/landform-belts (flash-flood dilemma: israel-climate "בנייה במורד ואדי בנגב … הופך לשיטפון בתוך דקות").
 - **Skill:** integrate everything: ג→ל routing, saturation, altitude/type, rain shadow, catchment, hazards.
-- **Scenario:** night, a long winter storm from the west across Israel. Objectives: rain on the coast, snow in Jerusalem and on Hermon, the Kinneret filled, **no flash flood** in the desert. No hints, no labels.
-- **State/action:** place tokens and choose timing; fly. **Rule:** all rules. Flash-flood hazard: heavy pouring on the **upper catchment of a desert wadi** (for example the eastern edge of the ridge above the Judean Desert, where the player can still be saturated) → runoff on bare rock → a flood downstream at the Dead Sea. This keeps the hazard consistent with the rain-shadow rule. It's impossible to pour once you're deep in the shadow.
+- **Scenario (as built):** night, a two-part winter storm from the west across Israel. Objectives: rain on the coast and snow in Jerusalem (storm 1); snow on Hermon and water to the Kinneret (storm 2); **no flash flood** in Nahal Arugot or Nahal Zin. No hints, no labels. Plan: one ל in `center`, `south` or `sea`, and the hour 15:00 or 03:00.
+- **State/action:** place the token and choose the hour; fly. `center` or `south` with **03:00** wins. At 15:00 the daily warming leaves Jerusalem at about +1.7 °C (slush), at 03:00 about −1.2 °C (snow). `sea` pulls the storm away from the coast. **Rule:** all rules. Flash-flood hazard: heavy pouring on the **upper catchment of a desert wadi** (for example the eastern edge of the ridge above the Judean Desert, where the player can still be saturated) → runoff on bare rock → a flood downstream at the Dead Sea. This keeps the hazard consistent with the rain-shadow rule. It's impossible to pour once you're deep in the shadow.
 - **Feedback:** ✔ «סערה מושלמת: גשם בחוף, שלג בירושלים ובחרמון, הכנרת מתמלאת – ואף טיפה מיותרת בוואדי.» ✘ (flood) «שפכתם גשם עז במעלה הוואדי. על סלע חשוף המים לא מחלחלים – הם זורמים במורד הערוץ כשיטפון.»
 - **Misconception:** all primary codes (HR, LH, SD, EW), plus KC.
 - **Transfer evidence:** **unaided completion** (hint button absent). Log the first-attempt result per objective separately from retries.

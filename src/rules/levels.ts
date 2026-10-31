@@ -110,7 +110,7 @@ export const LEVELS: LevelDef[] = [
       T0: 4.6, seaT: 18, cells: [H(5, 285, 1.2, 80), L(124, 266, 1.3, 62)], start: { x: 40, y: 302 }, duration: 75,
     })],
     targets: [
-      { id: 'telaviv', he: 'תל אביב', kind: 'rain', icon: 'city', zones: [at('telaviv', 8, 3, -2)], need: 8 },
+      { id: 'telaviv', he: 'תל אביב', kind: 'rain', icon: 'city', zones: [at('telaviv', 8, 3, -2)], need: 7 },
       { id: 'snowman', he: 'בובת השלג בירושלים', kind: 'snow', icon: 'snowman', zones: [at('jerusalem', 6)], need: 12 },
     ],
     success: 'ירושלים גבוהה ב־800 מ\' ולכן קרה יותר: אותה סערה, שלג בהר וגשם בחוף.',
@@ -118,12 +118,12 @@ export const LEVELS: LevelDef[] = [
   },
   {
     id: 8, world: 2, title: 'צל הגשם',
-    brief: 'מלאו את אזור ההעשרה של אקוויפר ההר: הרכס והמדרונות המערביים. ושלט מפתה ממזרח...',
-    goal: 'החדירו מים לאזור ההעשרה של אקוויפר ההר',
+    brief: 'מלאו את אגן המילוי של אקוויפר ההר: הרכס והמדרונות המערביים. ושלט מפתה ממזרח...',
+    goal: 'החדירו מים לאגן המילוי של אקוויפר ההר',
     showArrows: false, hints: true, labels: true, plan: {},
     storms: [winter({ T0: 12, cells: [H(8, 262, 1.3, 80), L(195, 250, 1.3, 90)], start: { x: 48, y: 262 }, duration: 75 })],
     targets: [
-      { id: 'aquifer', he: 'אזור ההעשרה', kind: 'water', icon: 'aquifer',
+      { id: 'aquifer', he: 'אגן המילוי', kind: 'water', icon: 'aquifer',
         zones: [at('judeanSlopes', 8, 0, 2), at('jerusalem', 6, -2, 0), at('hebron', 7, -2, 4), at('samaria', 7, -6, -18)], need: 36 },
       { id: 'bloom', he: '"הפריחו את המדבר!"', kind: 'rain', icon: 'bloom', zones: [at('judeanDesert', 8)], need: 10, optional: true },
     ],
@@ -157,7 +157,7 @@ export const LEVELS: LevelDef[] = [
       cells: [H(140, 335, 1.1, 60)], start: { x: 151, y: 380, W: 9.5 }, duration: 60,
     })],
     targets: [{ id: 'forest', he: 'היער', kind: 'rain', icon: 'forest', zones: [at('safed', 6, -2, 2)], need: 12 }],
-    success: 'הרוח נשבה ממזרח, ולכן המדרון המזרחי היה הצד הגשום. הכיוון של הרוח קובע איזה צד רטוב.',
+    success: 'הצד של ההר שפונה אל הרוח הוא הצד הגשום. כיוון הרוח קובע איזה צד רטוב.',
     solution: { plan: { tokens: [{ slot: 'west', kind: 'L' }] }, routes: [[pt('safed', -2, 2)]] },
   },
 
@@ -251,7 +251,7 @@ export const LEVELS: LevelDef[] = [
       { id: 'beersheva', he: 'באר שבע (ערבתי)', kind: 'water', icon: 'city', zones: [at('beersheva', 13, 5, 10)], need: 150, max: 280 },
       { id: 'eilat', he: 'אילת (מדברי)', kind: 'water', icon: 'city', zones: [at('eilat', 10)], need: 0, max: 50 },
     ],
-    success: 'שלושה אקלימים בארץ קטנה: ים תיכוני, ערבתי ומדברי. בקיץ, בכל השלושה, אין גשם.',
+    success: 'שלושה אקלימים בארץ קטנה: ים תיכוני, ערבתי ומדברי. בקיץ, בכל השלושה, כמעט אין גשם.',
     solution: {
       plan: { tokens: [] },
       routes: [[pt('telaviv', 4, -2)], [pt('telaviv', 4, -2)], [pt('beersheva', 5, 10)], [pt('telaviv', 4, -2)], [pt('beersheva', 5, 10)], []],
@@ -272,7 +272,7 @@ export const LEVELS: LevelDef[] = [
       },
     }],
     targets: [{ id: 'field', he: 'השדה בשפלה', kind: 'rain', icon: 'field', zones: [at('judeanSlopes', 8, -6, 0)], need: 14 }],
-    success: 'בקיץ אין גשם בישראל. שמרתם את המים מעל הים וחיכיתם לחורף.',
+    success: 'בקיץ כמעט אין גשם בישראל. שמרתם את המים מעל הים וחיכיתם לחורף.',
     solution: { plan: { tokens: [] }, routes: [[{ x: 40, y: 268 }, { x: 36, y: 268 }, pt('judeanSlopes', -6, 0)]], seasonAt: 22 },
   },
 

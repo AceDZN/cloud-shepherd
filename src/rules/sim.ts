@@ -44,6 +44,7 @@ export interface Cloud {
 
 export type Feedback =
   | { key: 'dryPour'; rh: number }
+  | { key: 'sinking' }
   | { key: 'slush'; target: string }
   | { key: 'snowOnRain'; target: string }
   | { key: 'flood'; wadi: string }
@@ -324,12 +325,14 @@ export function step(run: Run, input: Input): void {
   c.ground = groundHeight(c.x, c.y);
   c.surface = waterAt(c.x, c.y);
   if (c.ground > c.hEnv) c.hEnv = c.ground;
-  else c.hEnv += (c.ground - c.hEnv) * Math.min(1, 0.45 * dt);
+  else c.hEnv += (c.ground - c.hEnv) * Math.min(1, 1.1 * dt);
+  // On the lee side the air sinks with the falling ground: no extra lift, and what there was fades.
+  const descending = c.surface === 'land' && c.ground < c.hEnv - 60;
   const lowInf = cellInfluence(run.cells, 'L', c.x, c.y);
   const highInf = cellInfluence(run.cells, 'H', c.x, c.y);
   const thermal = c.surface === 'land' ? Math.max(0, landSeaContrast(env.hour, env.sunny)) / 9 : 0;
   const south = southFactor(env, c.y, c.x);
-  c.E += (60 * lowInf - 95 * highInf + 55 * thermal - 0.06 * c.E - 70 * south) * dt;
+  c.E += ((descending ? 0 : 60 * lowInf) - 95 * highInf + 55 * thermal - (descending ? 0.5 : 0.06) * c.E - 70 * south) * dt;
   // Summer: the subtropical high's sinking air caps how high anything can rise.
   c.E = Math.max(0, Math.min(env.season === 'summer' ? 250 : 1400, c.E));
   c.z = c.hEnv + CLEARANCE_M + c.E;
@@ -363,13 +366,17 @@ export function step(run: Run, input: Input): void {
   if (south > 0 && c.surface === 'land') loss += 0.11 * south * c.W * dt;
   // Sinking air under a strong high is warm and dry (the summer high over Israel).
   if (highInf > 0.5 && c.surface === 'land') loss += 0.07 * (highInf - 0.5) * c.W * dt;
+  if (descending && c.excess > 0) loss += 0.5 * c.excess * dt;
   if (loss > 0) { c.W -= loss; run.dissipated += loss; }
   updateThermo(run);
 
   // Pour: only saturated air can drop rain or snow.
   c.pouring = input.pour;
   if (input.pour) {
-    if (c.excess > 0) {
+    if (descending && c.excess > 0) {
+      // Sinking air warms: the drops evaporate before they reach the ground (the rain shadow).
+      if (run.tTotal - run.lastDryPour > 1.5) { run.lastDryPour = run.tTotal; run.feedback.push({ key: 'sinking' }); }
+    } else if (c.excess > 0) {
       const p = Math.min(c.excess, POUR_RATE * dt);
       c.W -= p; run.poured += p;
       deposit(run, p);
