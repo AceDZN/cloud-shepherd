@@ -217,12 +217,13 @@ export class Terrain {
             float depth = channel == 0 ? m.a : 0.5;
             vec3 c = mix(shallow, deep, smoothstep(0.0, 0.5, depth));
             float waves = sin(vW.x * 2.1 + time * 1.3) * sin(vW.z * 1.7 - time * 1.1);
-            c += waves * 0.025;
+            float near = 1.0 - smoothstep(60.0, 220.0, vFog); // waves and glitter fade with distance (no checkerboard from far away)
+            c += waves * 0.025 * near;
             vec2 cell = floor(vW.xz * 3.0 + vec2(time * 0.7, time * 0.4));
             float g = step(0.985, hash(cell)) * (0.5 + 0.5 * sin(time * 6.0 + hash(cell + 3.1) * 30.0));
             vec3 viewDir = normalize(cameraPosition - vW);
             float spec = pow(max(dot(reflect(-sunDir, vec3(0.0, 1.0, 0.0)), viewDir), 0.0), 60.0);
-            c += (g * 0.9 + spec * 0.8) * (1.0 - night * 0.7) * vec3(1.0, 0.97, 0.88);
+            c += (g * 0.9 * near + spec * 0.8) * (1.0 - night * 0.7) * vec3(1.0, 0.97, 0.88);
             c *= 1.0 - night * 0.55;
             float edge = smoothstep(0.35, 0.6, a);
             float f = smoothstep(fogNear, fogFar, vFog);

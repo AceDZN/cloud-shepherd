@@ -7,7 +7,7 @@ import type { Assets } from './assets.ts';
 import { toWorldY } from './world.ts';
 
 const WHITE = new THREE.Color('#ffffff');
-const SLATE = new THREE.Color('#59657d');
+const SLATE = new THREE.Color('#3d465c');
 const NIGHT = new THREE.Color('#9aa7c8');
 
 /** Cloud display height above its simulated air parcel (world units), so it never clips hilltops. */
@@ -26,8 +26,9 @@ export class CloudVisual {
   private coreMats: THREE.MeshStandardMaterial[] = [];
   private puffs: Puff[] = [];
   private puffMat: THREE.MeshStandardMaterial;
-  private rim: THREE.Mesh;
-  private rimMat: THREE.ShaderMaterial;
+  private rimColor = { value: new THREE.Color('#ffd9a0') };
+  private rimPower = { value: 0.45 };
+  private glow: THREE.PointLight;
   private shadowDisk: THREE.Mesh;
   private t = 0;
   private blinkT = 2;
@@ -35,18 +36,29 @@ export class CloudVisual {
   scale = 1;
   /** yaw that points the face (+Z) where the game wants it, usually toward the camera */
   faceYaw = 0;
+  /** set to 1 to light the cloud from inside (lightning) */
+  flash = 0;
 
   constructor(assets: Assets) {
     this.group.add(this.body);
-    this.core = assets.anani(2.2);
+    this.core = assets.anani(3.0);
     this.core.traverse((o) => {
       const m = o as THREE.Mesh;
       if (m.isMesh) { m.castShadow = true; this.coreMats.push(m.material as THREE.MeshStandardMaterial); }
     });
-    this.core.position.set(0, 0.1, 0.55);
+    this.core.position.set(0, 0.05, 0.25);
     this.body.add(this.core);
 
-    this.puffMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95, emissive: '#dfe9ff', emissiveIntensity: 0.18 });
+    this.puffMat = new THREE.MeshStandardMaterial({ color: '#f7f9ff', roughness: 0.95, emissive: '#ffffff', emissiveIntensity: 0.32 });
+    // a fresnel rim: backlit edges glow warm by day and blue when the cloud is ready to pour
+    this.puffMat.onBeforeCompile = (sh) => {
+      sh.uniforms.rimColor = this.rimColor;
+      sh.uniforms.rimPower = this.rimPower;
+      sh.fragmentShader = 'uniform vec3 rimColor;\nuniform float rimPower;\n' + sh.fragmentShader.replace(
+        '#include <emissivemap_fragment>',
+        '#include <emissivemap_fragment>\n  float rimF = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.5);\n  totalEmissiveRadiance += rimColor * rimF * rimPower;',
+      );
+    };
     const geo = new THREE.IcosahedronGeometry(1, 3);
     // a deterministic lumpy cluster around and behind the face
     const spots: [number, number, number, number][] = [
@@ -65,20 +77,9 @@ export class CloudVisual {
       this.puffs.push(p);
     });
 
-    this.rimMat = new THREE.ShaderMaterial({
-      transparent: true, depthWrite: false, side: THREE.BackSide, blending: THREE.AdditiveBlending,
-      uniforms: { color: { value: new THREE.Color('#bfe6ff') }, power: { value: 0.35 } },
-      vertexShader: /* glsl */ `
-        varying vec3 vN; varying vec3 vV;
-        void main() { vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
-      fragmentShader: /* glsl */ `
-        uniform vec3 color; uniform float power; varying vec3 vN; varying vec3 vV;
-        void main() { float f = pow(1.0 - abs(dot(vN, vV)), 2.0); gl_FragColor = vec4(color * f * power, f * power); }`,
-    });
-    this.rim = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), this.rimMat);
-    this.rim.scale.set(3.1, 1.9, 2.4);
-    this.rim.position.set(0, 0.2, -0.5);
-    this.body.add(this.rim);
+    this.glow = new THREE.PointLight('#cfd8ff', 0, 14, 1.5);
+    this.glow.position.set(0, 0, -0.4);
+    this.body.add(this.glow);
 
     this.shadowDisk = new THREE.Mesh(
       new THREE.CircleGeometry(1, 32),
@@ -112,14 +113,14 @@ export class CloudVisual {
 
     // saturation darkens it, dry air frays it
     const sat = THREE.MathUtils.clamp((c.rh - 0.8) / 0.2, 0, 1) * 0.55 + THREE.MathUtils.clamp(c.excess / 2.5, 0, 1) * 0.45;
-    const col = WHITE.clone().lerp(SLATE, sat * 0.85).lerp(NIGHT, night * 0.5);
+    const col = WHITE.clone().lerp(NIGHT, night * 0.45).lerp(SLATE, sat * 0.9);
     this.puffMat.color.copy(col);
-    this.puffMat.emissiveIntensity = 0.18 * (1 - sat) + night * 0.22;
+    this.puffMat.emissiveIntensity = (0.32 + night * 0.12) * (1 - sat * 0.8);
     for (const m of this.coreMats) {
-      m.color.copy(WHITE).lerp(SLATE, sat * 0.35);
+      m.color.copy(WHITE).lerp(SLATE, sat * 0.6);
       // a soft self-glow keeps the face readable in storms and at night
       if (m.map && m.emissiveMap !== m.map) { m.emissiveMap = m.map; m.emissive.set('#ffffff'); m.needsUpdate = true; }
-      m.emissiveIntensity = 0.14 + night * 0.3;
+      m.emissiveIntensity = (0.14 + night * 0.3) * (1 - sat * 0.5);
     }
     const dry = THREE.MathUtils.clamp((MIX_RH - c.rh) / 0.3, 0, 1);
     for (const p of this.puffs) {
@@ -127,8 +128,10 @@ export class CloudVisual {
       p.mesh.position.set(p.base.x * (1 + dry * 0.25), p.base.y + wob, p.base.z * (1 + dry * 0.25));
       p.mesh.scale.setScalar(p.r * (1 - dry * 0.35) * (1 + Math.sin(this.t * 0.9 + p.phase) * 0.04));
     }
-    (this.rimMat.uniforms.color.value as THREE.Color).set(c.excess > 0 ? '#9fd7ff' : '#ffffff');
-    this.rimMat.uniforms.power.value = c.excess > 0 ? 0.55 + Math.sin(this.t * 5) * 0.12 : 0.25;
+    this.rimColor.value.set(c.excess > 0 ? '#9fd7ff' : night > 0.5 ? '#9fb4ff' : '#ffd9a0');
+    this.rimPower.value = c.excess > 0 ? 0.6 + Math.sin(this.t * 5) * 0.15 : 0.4;
+    this.flash = Math.max(0, this.flash - dt * 4);
+    this.glow.intensity = this.flash * 40;
 
     // blink: a quick vertical squish of the face core
     this.blinkT -= dt;

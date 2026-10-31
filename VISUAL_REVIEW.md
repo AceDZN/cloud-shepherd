@@ -4,13 +4,13 @@ Reviewed 2026-10-31 by the art helper. The running build (dev server :5241) was 
 
 **Evidence**
 
-- The lead's captures: `docs/shots/01–16`.
+- The lead's captures: `tmp/shots/01–16` (local only, git-ignored).
 - My own close-ups and side-by-side comparisons were made with a scratch Playwright script (`tmp/visual-review/closeups.mjs`, same hooks as `scripts/shots.mjs`). They are in `tmp/visual-review/`, which is git-ignored and **local only**:
   - `cmp-01-flight.png`, `cmp-02-plan.png`, `cmp-03-storm.png`, `cmp-03b-jerusalem-closeup.png`
   - `cu-farmer.png`, `cu-jerusalem.png`, `cu-lifeguard.png`, `cu-jeep.png`, `cu-l4-flight.png`
   - `l2-strip.png`, `lod-check.png`
 
-**Repo hygiene: needs a lead decision.** The user does not want screenshots committed. `docs/shots/*.png` (≈9 MB) is **not** git-ignored right now. Please add `docs/shots/` and `docs/visual-review/*.png` to `.gitignore` before committing, or point `scripts/shots.mjs` at `tmp/shots`. The three files in `docs/visual-targets/` are design mockups (deliverables required by the brief), not screenshots, so they are intended to be committed.
+**Repo hygiene (resolved by the lead):** captures now go to the git-ignored `tmp/` folder, and `tmp/shots/` was removed from the repo. The three files in `docs/visual-targets/` are design mockups (deliverables required by the brief), not screenshots, so they stay committed.
 
 Severity scale:
 

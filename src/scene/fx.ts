@@ -5,7 +5,7 @@ import { windAt, type PressureCell, type PrecipKind } from '../rules/atmosphere.
 import { surfaceY } from './terrain.ts';
 
 const RAIN_N = 2400;
-const SNOW_N = 700;
+const SNOW_N = 1400;
 const MIST_N = 260;
 const STREAK_N = 170;
 
@@ -52,7 +52,7 @@ export class Fx {
     rain.frustumCulled = false;
 
     this.snowGeo.setAttribute('position', new THREE.BufferAttribute(this.snowPos, 3));
-    const snow = new THREE.Points(this.snowGeo, new THREE.PointsMaterial({ color: '#ffffff', size: 0.16, transparent: true, opacity: 0.95, depthWrite: false, map: dotTexture() }));
+    const snow = new THREE.Points(this.snowGeo, new THREE.PointsMaterial({ color: '#ffffff', size: 0.32, transparent: true, opacity: 0.95, depthWrite: false, map: dotTexture() }));
     snow.frustumCulled = false;
 
     this.mistGeo.setAttribute('position', new THREE.BufferAttribute(this.mistPos, 3));
@@ -112,7 +112,7 @@ export class Fx {
       }
     }
     if (kind !== 'rain') {
-      const n = Math.round(rate * dt * (kind === 'snow' ? 500 : 160));
+      const n = Math.round(rate * dt * (kind === 'snow' ? 750 : 240));
       for (let k = 0; k < n; k++) {
         const i = this.snowNext = (this.snowNext + 1) % SNOW_N;
         const a = R() * Math.PI * 2, d = Math.sqrt(R()) * r;
@@ -203,7 +203,7 @@ export class Fx {
     for (let i = 0; i < SNOW_N; i++) {
       if (!this.snowAlive[i]) continue;
       const o = i * 3;
-      this.snowPos[o + 1] -= 1.6 * dt;
+      this.snowPos[o + 1] -= 1.1 * dt;
       this.snowPos[o] += Math.sin(this.snowPos[o + 1] * 3 + i) * 0.6 * dt;
       if (this.snowPos[o + 1] < surfaceY(this.snowPos[o], -this.snowPos[o + 2])) { this.snowAlive[i] = 0; this.snowPos[o + 1] = -999; }
     }

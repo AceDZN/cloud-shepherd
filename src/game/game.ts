@@ -86,6 +86,7 @@ export class Game {
   private planPanel: HTMLDivElement;
   private toast: HTMLDivElement;
   private joyEl: HTMLDivElement;
+  private launchEl: HTMLDivElement;
 
   constructor(private root: HTMLElement) {
     const canvas = el('canvas', 'game-canvas');
@@ -97,7 +98,8 @@ export class Game {
     this.overlay = el('div', 'overlay hidden');
     this.toast = el('div', 'toast hidden');
     this.joyEl = el('div', 'joy hidden', '<div class="joy-knob"></div>');
-    root.append(this.hud, this.planPanel, this.toast, this.joyEl, this.overlay);
+    this.launchEl = el('div', 'launch-wrap hidden');
+    root.append(this.hud, this.planPanel, this.launchEl, this.toast, this.joyEl, this.overlay);
     this.sound.muted = progress.muted;
     this.bindInput(canvas);
   }
@@ -175,6 +177,7 @@ export class Game {
   private leaveLevel() {
     this.hud.className = 'hud hidden';
     this.planPanel.className = 'plan-panel hidden';
+    this.launchEl.className = 'launch-wrap hidden';
     this.toast.className = 'toast hidden';
     this.cloud?.group && (this.cloud.group.visible = false);
     this.labels.clear();
@@ -287,9 +290,11 @@ export class Game {
     }
     html += `<div class="plan-actions">
       ${l.hints ? `<button class="btn small" data-act="hint">רמז</button>` : ''}
-      <button class="btn small" data-act="clear">ניקוי</button>
-      <button class="btn primary" data-act="launch" ${canGo ? '' : 'disabled'}>יוצאים!</button></div>
+      <button class="btn small" data-act="clear">ניקוי</button></div>
       ${canGo ? '' : `<div class="fine warn">צריך להניח את כל האסימונים לפני היציאה.</div>`}`;
+    this.launchEl.innerHTML = `<button class="btn primary launch" data-act="launch" ${canGo ? '' : 'disabled'}>יוצאים! ☁</button>`;
+    this.launchEl.className = 'launch-wrap';
+    this.launchEl.querySelector('[data-act=launch]')!.addEventListener('click', () => { this.sound.go(); this.startFlight(); });
     this.planPanel.innerHTML = html;
     this.planPanel.className = 'plan-panel';
     this.planPanel.querySelectorAll<HTMLButtonElement>('.tok').forEach((b) => b.addEventListener('click', () => {
@@ -298,7 +303,6 @@ export class Game {
     this.planPanel.querySelectorAll<HTMLButtonElement>('.hour').forEach((b) => b.addEventListener('click', () => {
       this.plan.hour = Number(b.dataset.hour); this.sound.click(); this.applyMood(this.level!.storms[0]); this.renderPlanPanel();
     }));
-    this.planPanel.querySelector('[data-act=launch]')?.addEventListener('click', () => { this.sound.go(); this.startFlight(); });
     this.planPanel.querySelector('[data-act=clear]')?.addEventListener('click', () => {
       for (const t of this.plan.tokens) this.props.placeToken(t.slot, null);
       this.plan.tokens = [];
@@ -377,6 +381,7 @@ export class Game {
     const l = this.level!;
     this.hideOverlay();
     this.planPanel.className = 'plan-panel hidden';
+    this.launchEl.className = 'launch-wrap hidden';
     this.props.setSlotsVisible(false);
     this.run = createRun(l, this.plan);
     this.run.hintUsed = this.hintUsed;
@@ -424,6 +429,10 @@ export class Game {
       <div class="gauges">
         <div class="rh-ring" data-k="rhring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="trk"/><circle cx="50" cy="50" r="42" class="val" data-k="rharc"/></svg>
           <div class="rh-in"><b data-k="rh"></b><span>לחות יחסית</span></div></div>
+        <div class="bars">
+          <div class="vbar alt" title="גובה"><i class="ground" data-k="altground"></i><i class="mark" data-k="altmark"></i><span>גובה</span></div>
+          <div class="vbar temp" title="טמפרטורה"><i class="fill" data-k="tempfill"></i><i class="zero" data-k="tempzero"></i><span>°C</span></div>
+        </div>
         <div class="gstack">
           <div class="g"><span>גובה</span><b data-k="alt"></b></div>
           <div class="g"><span>טמפרטורה</span><b data-k="temp"></b></div>
@@ -656,6 +665,14 @@ export class Game {
     q('rhring')?.classList.toggle('full', c.excess > 0);
     set('alt', `<bdi class="num">${Math.round(c.z / 10) * 10}</bdi> מ'`);
     set('temp', deg(c.T));
+    // bars: 0–2,600 m and −10…35 °C
+    const altPct = (m: number) => `${THREE.MathUtils.clamp(m / 2600, 0, 1) * 100}%`;
+    const tPct = (t: number) => THREE.MathUtils.clamp((t + 10) / 45, 0, 1);
+    const ag = q('altground'); if (ag) ag.style.height = altPct(Math.max(0, c.ground));
+    const am = q('altmark'); if (am) am.style.bottom = altPct(c.z);
+    const tf = q('tempfill');
+    if (tf) { tf.style.height = `${tPct(c.T) * 100}%`; tf.classList.toggle('cold', c.T <= 1); }
+    const tz = q('tempzero'); if (tz) tz.style.bottom = `${tPct(0) * 100}%`;
     set('w', `<bdi class="num">${c.W.toFixed(1)}</bdi> <small>ג'/מ"ק</small>`);
     set('cap', `<bdi class="num">${capacity(c.T).toFixed(1)}</bdi> <small>ב־${deg(c.T)}</small>`);
     const kind = precipKind(c.groundT);
@@ -723,6 +740,7 @@ export class Game {
       if (this.boltCd <= 0) {
         this.boltCd = 3 + Math.random() * 4;
         this.world.lightning = 1;
+        this.cloud.flash = 1;
         this.fx.lightning(cp.clone().add(new THREE.Vector3(0, -0.6, 0)), groundY);
         this.sound.thunder();
       }
@@ -946,9 +964,10 @@ export class Game {
       if (this.camBlend === 0) {
         this.world.scene.fog = new THREE.Fog((this.world.scene.fog as THREE.Fog).color, 110, 420);
         this.applyMood(this.run!.env);
-        this.world.setFocus(0.5, 1);
+        this.world.setFocus(0.55, 1.8);
       }
-      this.stepFlight(dt);
+      // the sim waits until the launch swoop has landed behind the cloud
+      if (this.camBlend > 0.85) this.stepFlight(dt);
       if (this.run && this.mode === 'flight') {
         this.updateFlightVisuals(dt);
         this.updateHud(dt);
@@ -968,7 +987,10 @@ export class Game {
       this.camGoalPos.set(95 + Math.sin(a) * 120, 210, -230 + Math.cos(a) * 200);
     }
     if (this.mode !== 'flight' || !this.paused) {
-      this.props.update(dt, this.time, this.world.camera);
+      this.props.tokenScale = this.mode === 'plan' || this.mode === 'intro' ? 2.2 : 1;
+    if (this.run) { this.props.cloudAt = { x: this.run.cloud.x, y: this.run.cloud.y }; this.props.failed = this.run.status === 'failed'; }
+    else { this.props.cloudAt = { x: -999, y: -999 }; this.props.failed = false; }
+    this.props.update(dt, this.time, this.world.camera);
       this.terrain.update(dt, this.time);
       if (this.mode !== 'flight') this.fx.update(dt, null, { x: 0, y: 0 }, 0);
     }
@@ -1013,7 +1035,7 @@ export class Game {
         else if (code === 'KeyM') this.toggleMute();
       } else if (code === 'Enter') {
         (this.overlay.querySelector('.btn.primary') as HTMLButtonElement | null)?.click()
-          ?? (this.planPanel.querySelector('[data-act=launch]') as HTMLButtonElement | null)?.click();
+          ?? (this.launchEl.querySelector('[data-act=launch]') as HTMLButtonElement | null)?.click();
       } else if (code === 'KeyM') this.toggleMute();
       else if (this.mode === 'plan' && (code === 'Digit1' || code === 'Digit2')) {
         this.selectedKind = code === 'Digit1' ? 'L' : 'H';

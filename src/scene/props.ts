@@ -117,7 +117,6 @@ export function makeToken(kind: CellKind, fixed: boolean, size = 3.2): THREE.Gro
   const edge = std(fixed ? '#8a93a6' : st.edge, { metalness: 0.3, roughness: 0.4 });
   const coin = new THREE.Mesh(new THREE.CylinderGeometry(size / 2, size / 2, size * 0.16, 40), edge);
   coin.rotation.x = Math.PI / 2;
-  coin.castShadow = true;
   // the letter sits on an upright plane in front of the coin, so it always reads the right way up
   const front = new THREE.Mesh(new THREE.CircleGeometry(size / 2, 40), face);
   front.position.z = size * 0.12;
@@ -218,9 +217,11 @@ export class Props {
         s.set(0.7 + R() * 0.6, tall, 0.7 + R() * 0.6);
         m.compose(p, q, s);
         houses.setMatrixAt(h++, m);
+        this.houseMats.push(m.clone());
       }
     }
     houses.count = h;
+    this.houses = houses;
     houses.castShadow = houses.receiveShadow = true;
     this.group.add(houses);
 
@@ -231,15 +232,31 @@ export class Props {
       b.position.set(x, 0.05, -y);
       b.rotation.y = rot;
       b.userData.bob = R() * 6;
+      b.userData.baseY = 0.05;
       this.group.add(b);
       this.boats.push(b);
     }
+    // and a fishing boat on the Kinneret
+    const kb = this.assets.prop('boat', 1.6);
+    kb.position.set(PLACES.kinneret.x - 1, surfaceY(PLACES.kinneret.x - 1, PLACES.kinneret.y) + 0.3, -PLACES.kinneret.y);
+    kb.rotation.y = 1.2;
+    kb.userData.bob = 2.5;
+    kb.userData.baseY = kb.position.y;
+    this.group.add(kb);
+    this.boats.push(kb);
   }
   private boats: THREE.Object3D[] = [];
   private rainbows: THREE.Object3D[] = [];
   private crowns!: THREE.InstancedMesh;
   private trunks!: THREE.InstancedMesh;
   private treeMats: THREE.Matrix4[] = [];
+  private houses!: THREE.InstancedMesh;
+  private houseMats: THREE.Matrix4[] = [];
+  /** set by the game each frame: where ענני is, and whether the level just failed */
+  cloudAt = { x: -999, y: -999 };
+  failed = false;
+  /** plan view shows the coins bigger */
+  tokenScale = 1;
 
   /** Clear scattered trees out of target zones so fields, snowmen and characters stay visible. */
   private clearTrees(zones: Circle[]) {
@@ -251,6 +268,13 @@ export class Props {
       this.trunks.setMatrixAt(i, inside ? zero : m);
     });
     this.crowns.instanceMatrix.needsUpdate = this.trunks.instanceMatrix.needsUpdate = true;
+    const tight = zones.filter((z) => z.r <= 9);
+    this.houseMats.forEach((m, i) => {
+      p.setFromMatrixPosition(m);
+      const inside = tight.some((z) => Math.hypot(p.x - z.x, -p.z - z.y) < z.r * 0.75);
+      this.houses.setMatrixAt(i, inside ? zero : m);
+    });
+    this.houses.instanceMatrix.needsUpdate = true;
   }
 
   clearLevel() {
@@ -328,6 +352,7 @@ export class Props {
       s.token = makeToken(kind, false, 7);
       s.token.position.set(s.slot.x, Math.max(0.1, surfaceY(s.slot.x, s.slot.y)) + 0.4, -s.slot.y);
       s.token.scale.setScalar(0.01);
+      s.token.userData.grow = 0.01;
       this.level.add(s.token);
     }
   }
@@ -363,15 +388,16 @@ export class Props {
       });
       const dry = new THREE.Color(t.icon === 'wheat' ? '#d9b04a' : '#a5713f');
       const wet = new THREE.Color('#58b83a');
-      const farmer = this.assets.actor('farmer', 1.6);
-      farmer.root.position.copy(local(2.6, -1.4));
+      const farmer = this.assets.actor('farmer', 2.6);
+      farmer.root.position.copy(local(2.8, -1.6));
       farmer.root.rotation.y = -0.6;
       farmer.play('idle');
       icon.add(farmer.root);
       actors.push(farmer);
       update = (frac, met) => {
         for (const p of patches) (p.material as THREE.MeshStandardMaterial).color.copy(dry).lerp(wet, Math.min(1, frac));
-        farmer.play(met ? 'cheer' : 'idle');
+        const near = Math.hypot(this.cloudAt.x - z0.x, this.cloudAt.y - z0.y) < z0.r + 12;
+        farmer.play(met ? 'cheer' : this.failed ? 'defeat' : near ? 'wave' : 'idle');
       };
     } else if (t.icon === 'fire') {
       const N = 90;
@@ -405,8 +431,8 @@ export class Props {
       sm.position.copy(local(0, 0));
       icon.add(sm);
       const kids: Actor[] = [];
-      for (const [dx, dy, ry] of [[1.6, 0.4, -1.2], [-1.4, 0.8, 1.0]] as const) {
-        const kid = this.assets.actor('kid', 1.1);
+      for (const [dx, dy, ry] of [[2.0, 0.4, -1.2], [-1.8, 0.9, 1.0], [0.4, 2.2, 3.0]] as const) {
+        const kid = this.assets.actor('kid', 1.8);
         kid.root.position.copy(local(dx, dy));
         kid.root.rotation.y = ry;
         kid.play('idle');
@@ -419,10 +445,13 @@ export class Props {
         hs.rotation.y = R() * 0.5;
         icon.add(hs);
       }
-      update = (frac, met) => {
+      let last = 0, snowing = 0;
+      update = (frac, met, _o, dt) => {
         sm.scale.setScalar(0.2 + 0.8 * Math.min(1, frac));
         sm.visible = frac > 0.02;
-        for (const k of kids) k.play(met ? 'cheer' : 'idle');
+        snowing = frac > last ? 1.2 : Math.max(0, snowing - dt);
+        last = frac;
+        for (const k of kids) k.play(met || snowing > 0 ? 'cheer' : this.failed ? 'fall' : 'idle');
       };
     } else if (t.icon === 'kinneret') {
       const post = new THREE.Group();
@@ -447,15 +476,24 @@ export class Props {
         fill.position.y = h / 2;
       };
     } else if (t.icon === 'lifeguard') {
-      const tower = this.assets.prop('lifeguard-tower', 2.4);
-      tower.position.copy(local(0, 0));
-      tower.rotation.y = -Math.PI / 2;
+      // find the beach: the first land east of the zone centre
+      let bx = 0;
+      while (bx < 8 && waterAt(z0.x + bx, z0.y) !== 'land') bx += 0.25;
+      bx += 0.6;
+      const tower = this.assets.prop('lifeguard-tower', 3.2);
+      tower.position.copy(local(bx, 0));
+      tower.rotation.y = Math.PI / 2; // the ring and stripes look out to sea
       icon.add(tower);
       const umbrellas = [0xff5a4e, 0xffc93c, 0x35d0ff].map((c, i) => {
-        const u = new THREE.Mesh(new THREE.ConeGeometry(0.7, 0.35, 10), std(c));
-        u.position.copy(local(1.5 + i * 0.9, -1.5 + i * 1.2)).add(new THREE.Vector3(0, 1.0, 0));
+        const u = new THREE.Group();
+        const top = new THREE.Mesh(new THREE.ConeGeometry(0.7, 0.35, 10), std(c));
+        top.position.y = 1.0;
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.0, 5), std('#ffffff'));
+        pole.position.y = 0.5;
+        u.add(top, pole);
+        u.position.copy(local(bx + 0.4 + (i % 2) * 0.5, -2 + i * 1.6));
         icon.add(u);
-        return u;
+        return top;
       });
       update = (frac) => { for (const u of umbrellas) u.rotation.y += 0.002 + frac * 0.0; };
     } else if (t.icon === 'forest') {
@@ -586,6 +624,8 @@ export class Props {
         (t.userData.holder as THREE.Object3D).quaternion.copy(q);
         // never let a coin block the chase camera's view of the cloud
         t.visible = t.position.distanceTo(camera.position) > 40;
+        if (!this.slots.some((x) => x.token === t)) t.scale.setScalar(this.tokenScale);
+        (t.userData.holder as THREE.Object3D).position.y = (t.userData.baseY ??= (t.userData.holder as THREE.Object3D).position.y) + (this.tokenScale > 1 ? Math.sin(time * 2 + t.position.x) * 0.5 : 0);
       }
       const wp = new THREE.Vector3();
       for (const b of this.rainbows) {
@@ -594,11 +634,11 @@ export class Props {
       }
     }
     for (const a of this.actors) a.update(dt);
-    for (const b of this.boats) { b.position.y = 0.05 + Math.sin(time * 1.5 + b.userData.bob) * 0.05; b.rotation.z = Math.sin(time + b.userData.bob) * 0.05; }
+    for (const b of this.boats) { b.position.y = b.userData.baseY + Math.sin(time * 1.5 + b.userData.bob) * 0.05; b.rotation.z = Math.sin(time + b.userData.bob) * 0.05; }
     for (const s of this.slots) {
       if (s.token) {
-        const k = Math.min(1, s.token.scale.x + dt * 5);
-        s.token.scale.setScalar(k);
+        s.token.userData.grow = Math.min(1, (s.token.userData.grow ?? 0) + dt * 5);
+        s.token.scale.setScalar(s.token.userData.grow * this.tokenScale);
       }
       (s.pillar.material as THREE.MeshBasicMaterial).opacity = 0.25 + Math.sin(time * 3) * 0.12;
     }
