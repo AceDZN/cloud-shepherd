@@ -113,14 +113,15 @@ const TOKEN_STYLE: Record<CellKind, { letter: string; bg: string; ring: string; 
 export function makeToken(kind: CellKind, fixed: boolean, size = 3.2): THREE.Group {
   const st = TOKEN_STYLE[kind];
   const g = new THREE.Group();
-  const face = new THREE.MeshBasicMaterial({ map: letterTexture(st.letter, st.bg, fixed ? '#d9dde6' : st.ring), transparent: true });
+  const face = new THREE.MeshBasicMaterial({ map: letterTexture(st.letter, st.bg, fixed ? '#d9dde6' : st.ring), polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
   const edge = std(fixed ? '#8a93a6' : st.edge, { metalness: 0.3, roughness: 0.4 });
   const coin = new THREE.Mesh(new THREE.CylinderGeometry(size / 2, size / 2, size * 0.16, 40), edge);
   coin.rotation.x = Math.PI / 2;
   coin.castShadow = true;
   // the letter sits on an upright plane in front of the coin, so it always reads the right way up
   const front = new THREE.Mesh(new THREE.CircleGeometry(size / 2, 40), face);
-  front.position.z = size * 0.081;
+  front.position.z = size * 0.12;
+  front.renderOrder = 6;
   const holder = new THREE.Group();
   holder.add(coin, front);
   holder.position.y = size * 0.75;
