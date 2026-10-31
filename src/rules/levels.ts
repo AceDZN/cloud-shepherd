@@ -44,7 +44,7 @@ export const LEVELS: LevelDef[] = [
     goal: 'כבו את השריפה בכרמל',
     showArrows: false, hints: true, labels: true,
     plan: {
-      tokens: { L: 1, H: 0 },
+      tokens: { L: 1, H: 0 }, mustPlace: true,
       slots: [
         { id: 'east', x: 140, y: 362, kinds: ['L'] },
         { id: 'south', x: 98, y: 296, kinds: ['L'] },
@@ -76,7 +76,7 @@ export const LEVELS: LevelDef[] = [
     goal: 'השקו את השדות במדרונות השומרון',
     showArrows: false, hints: true, labels: true,
     plan: {
-      tokens: { L: 1, H: 0 },
+      tokens: { L: 1, H: 0 }, mustPlace: true,
       slots: [
         { id: 's1', x: 112, y: 388, kinds: ['L'] },
         { id: 's2', x: 158, y: 318, kinds: ['L'] },
@@ -84,10 +84,10 @@ export const LEVELS: LevelDef[] = [
         { id: 's4', x: 30, y: 262, kinds: ['L'] },
       ],
     },
-    storms: [winter({ cells: [H(5, 300, 1.0, 70)], start: { x: 50, y: 322 }, duration: 60 })],
-    targets: [{ id: 'fields', he: 'שדות השומרון', kind: 'rain', icon: 'field', zones: [at('samaria', 8, -8, 16)], need: 14 }],
+    storms: [winter({ cells: [H(20, 285, 1.0, 70)], start: { x: 50, y: 322 }, duration: 40 })],
+    targets: [{ id: 'fields', he: 'שדות השומרון', kind: 'rain', icon: 'field', zones: [at('samaria', 8, -8, 26)], need: 14 }],
     success: 'קראתם את המפה: מהרמה מעל הים אל השקע ממזרח, ובמעלה ההר.',
-    solution: { plan: { tokens: [{ slot: 's2', kind: 'L' }] }, routes: [[pt('samaria', -8, 16)]] },
+    solution: { plan: { tokens: [{ slot: 's2', kind: 'L' }] }, routes: [[pt('samaria', -8, 26)]] },
   },
 
   // ───────────── World 2 · Over the Mountains ─────────────
@@ -146,7 +146,7 @@ export const LEVELS: LevelDef[] = [
     goal: 'השקו את היער שעל המדרון',
     showArrows: false, hints: true, labels: false,
     plan: {
-      tokens: { L: 1, H: 0 },
+      tokens: { L: 1, H: 0 }, mustPlace: true,
       slots: [
         { id: 'west', x: 78, y: 412, kinds: ['L'] },
         { id: 'east', x: 205, y: 412, kinds: ['L'] },
@@ -213,7 +213,7 @@ export const LEVELS: LevelDef[] = [
     goal: 'גשם אחרון לגליל המערבי',
     showArrows: false, hints: true, labels: true,
     plan: {
-      tokens: { L: 1, H: 0 },
+      tokens: { L: 1, H: 0 }, mustPlace: true,
       slots: [
         { id: 'galilee', x: 150, y: 410, kinds: ['L'] },
         { id: 'negev', x: 105, y: 235, kinds: ['L'] },
@@ -325,9 +325,9 @@ export const LEVELS: LevelDef[] = [
     goal: 'גשם בחוף, שלג בירושלים ובחרמון, כנרת מלאה, ובלי שיטפון במדבר',
     showArrows: false, hints: false, labels: false,
     plan: {
-      tokens: { L: 1, H: 0 },
+      tokens: { L: 1, H: 0 }, mustPlace: true,
       slots: [
-        { id: 'center', x: 150, y: 262, kinds: ['L'] },
+        { id: 'center', x: 128, y: 258, kinds: ['L'] },
         { id: 'south', x: 120, y: 200, kinds: ['L'] },
         { id: 'sea', x: 30, y: 330, kinds: ['L'] },
       ],
@@ -335,14 +335,14 @@ export const LEVELS: LevelDef[] = [
     },
     evaluateAtEnd: true,
     storms: [
-      winter({ label: 'הסערה מגיעה', T0: 4.9, hour: 15, night: true, lightning: true, cells: [H(5, 285, 1.2, 80)], start: { x: 40, y: 300 }, duration: 75 }),
-      winter({ label: 'הסערה בצפון', T0: 4.9, hour: 15, night: true, lightning: true, cells: [H(40, 380, 1.2, 70), L(205, 470, 1.4, 80)], start: { x: 76, y: 402 }, duration: 75 }),
+      winter({ label: 'הסערה מגיעה', T0: 6.5, hour: 15, night: true, lightning: true, cells: [H(5, 285, 1.2, 80)], start: { x: 40, y: 300 }, duration: 75 }),
+      winter({ label: 'הסערה בצפון', T0: 6.5, hour: 15, night: true, lightning: true, cells: [H(40, 380, 1.2, 70), L(205, 470, 1.4, 80)], start: { x: 76, y: 402 }, duration: 75 }),
     ],
     targets: [
-      { id: 'coast', he: 'החוף', kind: 'rain', icon: 'city', zones: [at('telaviv', 7, 2, -2)], need: 8, storms: [0] },
+      { id: 'coast', he: 'החוף', kind: 'rain', icon: 'city', zones: [at('telaviv', 8, 3, -2)], need: 6, storms: [0] },
       { id: 'jerusalem', he: 'שלג בירושלים', kind: 'snow', icon: 'snowman', zones: [at('jerusalem', 6)], need: 10, storms: [0] },
       { id: 'hermon', he: 'שלג בחרמון', kind: 'snow', icon: 'snowman', zones: [at('hermon', 8)], need: 14, storms: [1] },
-      { id: 'kinneret', he: 'הכנרת', kind: 'water', icon: 'kinneret', zones: [at('upperGalilee', 9, 4, 2), at('golan', 8)], need: 10, storms: [1] },
+      { id: 'kinneret', he: 'הכנרת', kind: 'water', icon: 'kinneret', zones: [{ x: 135, y: 414, r: 10 }, { x: 158, y: 423, r: 8 }], need: 10, storms: [1] },
     ],
     wadis: [
       { id: 'arugot', he: 'נחל ערוגות', zone: { x: PLACES.eingedi.x - 4, y: PLACES.eingedi.y + 8, r: 12 }, threshold: 25, jeep: true },
@@ -351,7 +351,7 @@ export const LEVELS: LevelDef[] = [
     success: 'קראתם את הלחץ, את הגובה ואת השעה. גשם בחוף, שלג בהרים, הכנרת מתמלאת והמדבר שקט.',
     solution: {
       plan: { tokens: [{ slot: 'center', kind: 'L' }], hour: 3 },
-      routes: [[pt('telaviv', 4, -2), pt('jerusalem')], [pt('upperGalilee', 4, 2), pt('golan'), pt('hermon')]],
+      routes: [[pt('telaviv', 4, -2), pt('jerusalem')], [{ x: 135, y: 414 }, pt('hermon')]],
     },
   },
 ];

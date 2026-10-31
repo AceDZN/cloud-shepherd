@@ -62,6 +62,8 @@ export interface TokenSlot { id: string; x: number; y: number; kinds: CellKind[]
 export interface PlanOptions {
   slots?: TokenSlot[];
   tokens?: { L: number; H: number };
+  /** the player must place every token before launching */
+  mustPlace?: boolean;
   hours?: number[];
   defaultHour?: number;
 }

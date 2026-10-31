@@ -15,6 +15,6 @@ for (const lv of LEVELS) {
   const alts: PlanChoice[] = [];
   for (const s of lv.plan.slots ?? []) if (!sol.plan.tokens.some((t) => t.slot === s.id)) alts.push({ tokens: [{ slot: s.id, kind: 'L' }], hour: sol.plan.hour });
   for (const h of lv.plan.hours ?? []) if (h !== sol.plan.hour) alts.push({ tokens: sol.plan.tokens, hour: h });
-  if (lv.plan.slots) alts.push({ tokens: [], hour: sol.plan.hour });
+  if (lv.plan.slots && !lv.plan.mustPlace) alts.push({ tokens: [], hour: sol.plan.hour });
   for (const a of alts) console.log(`  alt ${JSON.stringify(a.tokens.map(t=>t.slot))} h=${a.hour}`.padEnd(26), fmt(play(lv, a, routePilot(sol))));
 }
