@@ -6,3 +6,9 @@ output/
 .playwright*/
 tmp/
 .vite/
+# screenshots and captures stay local (design mockups in docs/visual-targets are kept on purpose)
+*.png
+!docs/visual-targets/*.png
+docs/shots/
+docs/visual-review/
+docs/playtest/

@@ -79,6 +79,15 @@ Initial-load total of all 9 optimized files: **7,300,684 bytes (≈7.0 MB)**.
 | `public/models/olive.glb` | owned, reused | none | radial | ±0.5 · 0..0.961 · ±0.391 | 19,391 | 3,422,328 | 829,200 |
 | `public/models/cypress.glb` | owned, reused | none | radial | ±0.138 · 0..1.0 · ±0.134 | 4,795 | 2,944,792 | 396,552 |
 
+LOD variants (made in the visual-review phase from the optimized files above, for instancing; not loaded by `assets.ts` yet, so they are not in the 7.0 MB total):
+
+| Runtime path | Made from | Command | Tris | Bytes | sha256 |
+|---|---|---|---:|---:|---|
+| `public/models/stone-house-lo.glb` | `stone-house.glb` | `gltf-transform simplify --ratio 0.1 --error 0.01` | 3,464 | 258,668 | c7ed1cda0b9443bc9acd5b5c74bf903e45dd5a829958446d599f63857dccd6ef |
+| `public/models/olive-lo.glb` | `olive.glb` | `gltf-transform simplify --ratio 0.15 --error 0.03` | 5,240 | 419,728 | 0829ca397898c37be72e9f10531f3f69bd6572e1bec28c9795a925f3cf871032 |
+
+They keep the same front axis, materials, WebP textures, `KHR_materials_volume`, and no meshopt. Silhouettes were checked side by side (local only, `tmp/visual-review/lod-check.png`): the house is near-identical, and the olive canopy is slightly sparser. Use them for Jerusalem/Safed houses and dense orchards via `assets.parts()` (see VISUAL_REVIEW.md F7).
+
 sha256 hashes:
 
 | File | raw sha256 | optimized sha256 |

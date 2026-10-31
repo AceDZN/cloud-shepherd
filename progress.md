@@ -28,7 +28,7 @@ Original prompt: build Cloud Shepherd (רועה העננים), a 3D weather/Isra
 
 - `npm test`: 102/102 pass.
 - `npx tsc --noEmit`: clean.
-- Real browser captures are in `docs/shots/` (16 scenes), with no console errors.
+- Real browser captures (16 scenes, no console errors) are kept locally in `tmp/shots/` (git-ignored; screenshots are never committed).
 - Level 1 acceptance: the cloud soaks to 95 %, climbs the Carmel, hits 100 % at about 9 s, pours, and wins at about 12 s.
 - Level 2 acceptance: pouring at 90 % delivers 0 mm and shows one line: "הלחות היחסית רק 90%…".
 

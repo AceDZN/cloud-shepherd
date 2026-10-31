@@ -1,10 +1,10 @@
 // Real browser captures of the running game (dev server on 5241). Flights use the same scripted
 // pilots as the tests, pressing the same inputs a player can.
-// usage: node scripts/shots.mjs [outDir=docs/shots] [only=name,name]
+// usage: node scripts/shots.mjs [outDir=tmp/shots] [only=name,name]
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
-const out = process.argv[2] ?? 'docs/shots';
+const out = process.argv[2] ?? 'tmp/shots'; // local only: screenshots never go in the repo
 const only = process.argv[3]?.split(',') ?? null;
 const url = process.env.URL ?? 'http://localhost:5241/';
 mkdirSync(out, { recursive: true });

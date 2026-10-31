@@ -6,8 +6,6 @@ the warm sea, ride the wind from the high (ג) to the low (ל), and climb the sl
 saturation. Then pour: rain on the coast, snow on Jerusalem and the Hermon, water for the Kinneret.
 Nothing falls in the rain shadow.
 
-![Pouring on the Carmel](docs/shots/05-l1-pour.png)
-
 ## Play
 
 ```bash
@@ -53,7 +51,7 @@ npm run dev        # http://localhost:5241
 npm test                      # 102 node:test tests: all 18 levels, wrong plans fail, rain/snow by height,
                               # H→L wind, rain shadow, water conservation, curriculum map
 npx tsx scripts/tune.ts       # per-level table: solution, naive pilots, alternative plans
-node scripts/shots.mjs docs/shots   # real browser captures (dev server must be running)
+node scripts/shots.mjs               # real browser captures into tmp/shots (local only, git-ignored)
 ```
 
 ## Docs
