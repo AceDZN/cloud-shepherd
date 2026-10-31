@@ -830,6 +830,8 @@ export class Game {
     const r = this.run!;
     this.mode = 'replay';
     this.clearReplay();
+    this.fx.clear();
+    this.props.showFixedTokens([]);
     this.replayT = 0;
     const g = new THREE.Group();
     const byStorm = new Map<number, typeof r.track>();
@@ -837,16 +839,17 @@ export class Game {
     const dry = new THREE.Color('#ffd27a'), mid = new THREE.Color('#ffffff'), wet = new THREE.Color('#3b82f6');
     for (const pts of byStorm.values()) {
       if (pts.length < 2) continue;
-      const pos: number[] = [], col: number[] = [];
-      for (const p of pts) {
-        pos.push(p.x, toWorldY(p.z) + 1.4, -p.y);
+      const v3 = pts.map((p) => new THREE.Vector3(p.x, toWorldY(p.z) + 1.4, -p.y));
+      const segs = Math.min(400, pts.length * 2);
+      const tube = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(v3), segs, 0.32, 6, false);
+      const col: number[] = [];
+      for (let i = 0; i <= segs; i++) {
+        const p = pts[Math.min(pts.length - 1, Math.round((i / segs) * (pts.length - 1)))];
         const c = p.rh < 0.8 ? dry.clone().lerp(mid, p.rh / 0.8) : mid.clone().lerp(wet, (p.rh - 0.8) / 0.2);
-        col.push(c.r, c.g, c.b);
+        for (let j = 0; j <= 6; j++) col.push(c.r, c.g, c.b);
       }
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-      geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-      g.add(new THREE.Line(geo, new THREE.LineBasicMaterial({ vertexColors: true })));
+      tube.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      g.add(new THREE.Mesh(tube, new THREE.MeshBasicMaterial({ vertexColors: true })));
       // drop lines to the ground every few points: the height profile
       const drop: number[] = [];
       for (let i = 0; i < pts.length; i += 6) {
@@ -865,7 +868,7 @@ export class Game {
       evCol.push(c.r, c.g, c.b);
     }
     const ev = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(evPos, 3)).setAttribute('color', new THREE.Float32BufferAttribute(evCol, 3)),
-      new THREE.PointsMaterial({ size: 0.9, vertexColors: true }));
+      new THREE.PointsMaterial({ size: 1.6, vertexColors: true }));
     g.add(ev);
     const marker = makeToken('L', true, 0.01);
     marker.visible = false;

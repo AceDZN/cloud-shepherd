@@ -11,22 +11,24 @@ Grow fat over the sea, read the ג/ל map, ride the right wind up the right slop
 1. 0–5 s: the camera swoops from a high diorama overview (Israel as a tilt-shift miniature under a huge sky) down to a small white cloud with a face, bobbing over glittering sea west of the Carmel. One Hebrew line: "החזיקו ← → כדי לנוע לרוחב הרוח. הרוח נושבת מ־ג אל ל."
 2. 5–15 s: wind streaks (tutorial arrows on this level only) flow east toward a ל over the Jezreel side. ענני drifts low over the sea. The water bar fills, the cloud swells and the sound deepens. The RH ring climbs: 60 %, 75 %, 85 %.
 3. 15–25 s: the wind carries ענני onto the coast and up the Carmel's western slope. The altimeter climbs, the thermometer drops, the RH ring hits **100 %**, turns blue and pulses; the cloud darkens to slate.
-4. 25–35 s: the farmer's field glows ahead. Hold **Space** (or the big pour button on touch): a heavy downpour, rain particles, the brown field spreads green ring by ring, the farmer cheers, a rainbow. Stars: water delivered, water wasted, hint used.
+4. 25–35 s: the farmer's field glows ahead. Hold **Space** (or the big pour button on touch): a heavy downpour, rain particles, the brown field turns green and the ground around it greens, the farmer cheers, a rainbow arcs over the field. Stars: water delivered, water wasted, hint used.
 
-## Controls
+## Controls (as built)
 
 | Action | Keyboard (event.code) | Pointer / touch |
 |---|---|---|
-| Steer across or along the wind (never against it) | ArrowLeft/Right/Up/Down or KeyA/D/W/S | drag on the left half of the screen |
+| Steer across or along the wind (never against it), relative to the camera | ArrowLeft/Right/Up/Down or KeyA/D/W/S | drag anywhere on the map (virtual stick) |
 | Pour (rain or snow; works only at RH 100 %) | Space (hold) | big pour button, hold |
-| Plan phase: place / remove a ג or ל token | click a slot | tap a slot |
-| Plan phase: time of day / season dial | KeyT / KeyY or dial buttons | tap the dial |
-| Launch | Enter | "יוצאים" button |
-| Hint (costs a star, logged) | KeyH | hint button |
-| Pause / resume | Escape or KeyP | pause button |
-| Restart level | KeyR | menu |
-| Mute | KeyM | speaker button |
-| Fullscreen | KeyF | — |
+| Puff: a sideways gust, 4 s cooldown | ShiftLeft/ShiftRight or KeyE | נשיפה button |
+| Turn the season dial (level 15) | KeyQ or Tab | סובבו עונה button |
+| Plan: pick ל/ג, place or remove a token | Digit1 / Digit2, click a white ring | tap a ring |
+| Plan: time of day (levels 4, 18) | — | hour buttons |
+| Launch / confirm | Enter | יוצאים / primary button |
+| Hint (costs the third star) | KeyH | 💡 button |
+| Pause / resume | Escape or KeyP (also on blur or tab switch) | ⏸ button |
+| Fast-forward ×3 | KeyF | ⏩ button |
+| Restart level (keeps the plan) | KeyR | ↻ button |
+| Mute (remembered) | KeyM | 🔊 button |
 
 ## The decision
 
@@ -50,7 +52,7 @@ Where will the wind take me, and where on that path will I be saturated and at t
 
 ## Win and replay
 
-Each level scores 1–3 stars: target met (1), efficiency/no wasted water (2), no hint and no hazard (3). Levels unlock in order; replays keep best stars locally (localStorage only). After the 18 authored levels: generated seasons from a solver (verified solvable; "pour immediately" and "always go east" fail).
+Each level scores 1–3 stars: target met (1), efficiency/no wasted water (2), no hint and no hazard (3). Levels unlock in order; replays keep best stars locally (localStorage only). Solver-generated seasons after level 18 are not built yet (see progress.md).
 
 ## Camera
 
@@ -67,3 +69,10 @@ WebAudio, synthesized and bundled: a soft airy pad while drifting, a rising chim
 ## What it is not
 
 Not a quiz, not a delivery route with glowing lines, not Storm Proof (shelter building). There is no free up/down control: height comes from slopes, lows, heating and sinking air, so the geography is the controller.
+
+## As built (differences from the plan above)
+
+- Level 1 runs faster than the sketch: about 9 s of soaking and climbing to 100 % and a win at about 12 s with the scripted route.
+- The tutorial arrows are flat ground arrows that follow the real wind field, in levels 1–2 only. Wind streaks show the wind in every flight; the plan view shows no wind at all.
+- Pouring in sinking lee-side air does nothing and explains the rain shadow ("sinking" feedback), just like pouring below 100 %.
+- There is no fullscreen key: F is fast-forward. The season dial is Q/Tab rather than T/Y.

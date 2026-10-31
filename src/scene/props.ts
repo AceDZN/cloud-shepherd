@@ -235,6 +235,7 @@ export class Props {
     }
   }
   private boats: THREE.Object3D[] = [];
+  private rainbows: THREE.Object3D[] = [];
   private crowns!: THREE.InstancedMesh;
   private trunks!: THREE.InstancedMesh;
   private treeMats: THREE.Matrix4[] = [];
@@ -261,6 +262,7 @@ export class Props {
     this.fixedTokens = [];
     this.wadis = [];
     this.haze = [];
+    this.rainbows = [];
   }
 
   buildLevel(level: LevelDef) {
@@ -497,6 +499,21 @@ export class Props {
       icon.add(flowers);
       update = (frac) => { flowers.visible = frac > 0.3; };
     }
+    // a rainbow arcs over a rain target once it has had enough
+    if (t.kind === 'rain' && !t.optional) {
+      const bow = rainbow(Math.min(6, z0.r * 0.7));
+      bow.position.set(0, 0.2, 0);
+      bow.scale.setScalar(0.001);
+      bow.visible = false;
+      icon.add(bow);
+      this.rainbows.push(bow);
+      const inner = update;
+      update = (frac, met, over, dt, time) => {
+        inner(frac, met, over, dt, time);
+        bow.visible = met && !over;
+        if (bow.visible && bow.scale.x < 1) bow.scale.setScalar(Math.min(1, bow.scale.x + dt * 1.5));
+      };
+    }
     const anchor = new THREE.Vector3(z0.x, gy + (t.icon === 'kinneret' ? 7.5 : 3.6), -z0.y);
     const view: TargetView = {
       t, rings, discs, icon, anchor, actors,
@@ -569,6 +586,11 @@ export class Props {
         // never let a coin block the chase camera's view of the cloud
         t.visible = t.position.distanceTo(camera.position) > 40;
       }
+      const wp = new THREE.Vector3();
+      for (const b of this.rainbows) {
+        b.getWorldPosition(wp);
+        b.rotation.y = Math.atan2(camera.position.x - wp.x, camera.position.z - wp.z);
+      }
     }
     for (const a of this.actors) a.update(dt);
     for (const b of this.boats) { b.position.y = 0.05 + Math.sin(time * 1.5 + b.userData.bob) * 0.05; b.rotation.z = Math.sin(time + b.userData.bob) * 0.05; }
@@ -581,6 +603,16 @@ export class Props {
     }
     for (const h of this.haze) h.rotation.y += dt * 0.05;
   }
+}
+
+function rainbow(r: number): THREE.Group {
+  const g = new THREE.Group();
+  ['#ff4d4d', '#ff9a3c', '#ffe14d', '#5fdc6a', '#4db3ff', '#8a6cff'].forEach((c, i) => {
+    const arc = new THREE.Mesh(new THREE.TorusGeometry(r - i * 0.28, 0.14, 6, 48, Math.PI),
+      new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.7, depthWrite: false }));
+    g.add(arc);
+  });
+  return g;
 }
 
 function snowman(): THREE.Group {

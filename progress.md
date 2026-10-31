@@ -1,18 +1,40 @@
 Original prompt: build Cloud Shepherd (רועה העננים), a 3D weather/Israel-climate flying game, 18 levels (handoff: /Users/acedzn/idea-plotter/handoffs/geography-2026-10-31/cloud-shepherd/BUILD_HANDOFF.md).
 
-## Status: PAUSED by the lead (2026-10-31)
+## History
 
-The planning lead paused this build: its core mechanics duplicate Windshift Riders (`~/dev/AceDZN-exp/windshift-riders`, a 3D weather flight game over Israel's relief), and the user doesn't allow duplicate mechanics across games. Nothing was pushed. No dev server was running.
+- 2026-10-31: the build was briefly paused by the planning lead (possible overlap with Windshift Riders). The user chose **"Resume the build"**, and the original handoff applies again.
+- Rule model and the 18 levels were tuned first (`scripts/tune.ts`). Then the art helper made the visual targets and Tripo models, and the QA helper wrote the curriculum map and 102 tests. After that the 3D game, the browser captures, and finally the visual review and playtest.
 
-## State at pause
+## State
 
-- Scaffold: Vite 8 + TS + Three.js 0.186, ports 5241/4241 (strict). No renderer/UI yet.
-- Pure rule model in `src/rules/`: ETOPO1 relief of Israel (`demData.ts`, built by `scripts/build-dem.mjs`), geo/places, atmosphere (capacity table, 0.6 °C/100 m, rain/slush/snow by ground temperature, wind = −K∇P from ג/ל cells, sea breeze), deterministic cloud sim (`sim.ts`), scripted pilots (`autopilot.ts`), 18 level definitions (`levels.ts`).
-- Tuning (`npx tsx scripts/tune.ts`): solutions win for levels 1–15 and 17; 16 (decade bands) and 18 (final) still untuned. Wrong token/hour choices fail in 3, 4, 5, 10, 13; L5's "no token" case still wins. Southern wheat fields in L12 get 0 mm as intended.
-- QA helper: `CURRICULUM.md`, `docs/curriculum/` (7 snapshots + SOURCES.md), `docs/research/model-values.md`.
-- Art helper (stopped mid-work): 3 ChatGPT gameplay targets in `docs/visual-targets/` with prompts in `docs/VISUAL_PROMPTS.md`; models in `public/models/` (raw in `assets-src/tripo/`). ASSETS.md was not written yet; see `docs/visual-targets/STATUS.md`.
+- **Playable:** title, level select, intro, plan (ג/ל tokens, hour), flight, result, replay, for all 18 levels. Dev server on `http://localhost:5241`.
+- **Rules** (`src/rules/`), pure and deterministic:
+  - `atmosphere.ts`: capacity, lapse rate, precipitation type, pressure and wind, sea breeze.
+  - `sim.ts`: the cloud step, targets, wadis, storms, the season dial, stars.
+  - `levels.ts`: the 18 levels.
+  - `autopilot.ts`: scripted pilots for tests and captures.
+- **Model change after QA:** the rain-shadow loophole is closed. On a lee slope, sinking air follows the ground faster and loses the low's extra lift. Its drops evaporate, so a pour there gives `sinking` feedback and no rain.
+- **Scene** (`src/scene/`):
+  - `terrain.ts`: ETOPO1 diorama, water shader, greening and snow.
+  - `cloud.ts`: Tripo face core and puffs.
+  - `fx.ts`: rain, snow, mist, streaks, arrows, lightning.
+  - `props.ts`: targets, characters, coins, slots, wadis, haze, rainbow.
+  - `assets.ts`: GLB loader with procedural fallbacks.
+  - `world.ts`: renderer, sky, tilt-shift, mood.
+- **Game** (`src/game/`): `game.ts` (states, HUD, plan, camera, input, test hooks), `explain.ts` (Hebrew cause and feedback lines), `audio.ts`, `progress.ts`.
+- **Test hooks:** `window.render_game_to_text()`, `window.advanceTime(ms)`, `__game.quickStart(id, plan)` and `__game.pilot`, used by `scripts/shots.mjs`.
 
-## Loose ends
+## Checks (latest)
 
-- The art helper was stopped while a Tripo jeep generation may still have been running in its own Chrome tab; the tab may still be open.
-- Credits: only one confirmed new generation (anani, task ca70b4c4-a358-4e83-9968-20b8d977de28); farmer and kid are reused owned assets. Balances were not recorded before the stop.
+- `npm test`: 102/102 pass.
+- `npx tsc --noEmit`: clean.
+- Real browser captures are in `docs/shots/` (16 scenes), with no console errors.
+- Level 1 acceptance: the cloud soaks to 95 %, climbs the Carmel, hits 100 % at about 9 s, pours, and wins at about 12 s.
+- Level 2 acceptance: pouring at 90 % delivers 0 mm and shows one line: "הלחות היחסית רק 90%…".
+
+## Open items / limits
+
+- Solver-generated seasons after level 18 (optional in the handoff) are not built.
+- Ambience is synthesized only; there is no recorded audio.
+- The ground greening is a vertex-colour paint, not a growth animation of plants.
+- On low-end GPUs the 136k-vertex diorama with shadows may run slowly; there is no quality toggle yet.
