@@ -1,0 +1,9 @@
+# Art/assets status (art helper, running notes)
+
+Newest first. Paths are relative to the repo root.
+
+- 2026-10-31 14:47: **public/models/anani.glb landed** (new Tripo generation, task ca70b4c4-a358-4e83-9968-20b8d977de28). Round fluffy white cumulus with big glossy black eyes, pink cheeks, open grin, two small puff 'nub' arms and two little puff feet underneath. **Static, no rig** (squash/stretch/darken in code). Face points **+Z** (eye centroid at z≈+0.29, y≈0.66). Bounds x ±0.5, y 0..0.998, z ±0.46 (Y-up, bottom at y=0; recentre y by −0.5 to pivot at the middle). 18,828 tris, 488 KB. Material is white baseColor texture: darken by multiplying `material.color` toward slate (eyes stay dark).
+- 2026-10-31 14:41: **public/models/farmer.glb landed** (owned Tripo asset "stylized farmer character" = Rina, a Galilee-village woman farmer with a wide straw hat; already Mixamo-rigged in the account, 0 credits). Clips: `idle` (15 s), `cheer` (12 s), `defeat_02` (8 s, standing slump = despair), `wave_goodbye_02` (6 s, standing wave). Faces **+Z**, Y-up, feet y=0, height 1.0 (T-pose bind). 1,603,460 B.
+- 2026-10-31 14:36: **3 visual targets done** (ChatGPT in Chrome): `01-flight-carmel.png`, `02-plan-pressure-map.png`, `03-storm-jerusalem-snow.png`; prompts + checklists in `docs/VISUAL_PROMPTS.md`. Note: the images misspell the RH label as "להות"; use "לחות יחסית". Now starting Tripo.
+- 2026-10-31: **public/models/kid.glb landed** (copy of the user's own Slope Sled `sledder.glb`, Tripo Mixamo humanoid rig). Clips: `idle` (15 s loop), `cheer` (12 s), `fall` (3 s), `sit` (7 s). Faces **+Z**, Y-up, feet at y=0, ~1 unit tall (T-pose bind). 1,542,540 B. Orange puffy winter jacket, red knit hat: fits the Jerusalem snow kids. Load with `SkeletonUtils.clone` for several kids.
+- 2026-10-31: started. Next: ChatGPT mockups (3), then Tripo (anani, farmer, jeep, props from owned assets).
