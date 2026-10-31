@@ -163,6 +163,7 @@ kbd { font-family: inherit; display: inline-block; min-width: 1.6em; padding: 1p
 .rh-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .rh-in b { font-size: 30px; }
 .rh-in span { font-size: 12px; opacity: 0.9; }
+.rh-mini { display: none; font-size: 11px; opacity: 0.9; margin-top: 2px; white-space: nowrap; }
 .bars { display: flex; gap: 6px; background: var(--glass); border-radius: 16px; padding: 8px 8px 6px; border: 1.5px solid rgba(255, 255, 255, 0.16); }
 .vbar { position: relative; width: 16px; height: 104px; border-radius: 8px; background: rgba(255, 255, 255, 0.14); overflow: visible; }
 .vbar span { position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%); font-size: 10px; opacity: 0.8; white-space: nowrap; }
@@ -209,9 +210,10 @@ kbd { font-family: inherit; display: inline-block; min-width: 1.6em; padding: 1p
 .replay-info { font-size: 14px; }
 
 @media (max-width: 760px) {
-  .targets { top: auto; bottom: 168px; width: 200px; }
   .tgt { padding: 5px 8px; }
   .gstack { display: none; }
+  .rh-mini { display: block; }
+  .rh-in span { font-size: 10.5px; }
   .vbar { height: 80px; width: 13px; }
   .bars { padding: 6px 6px 16px; }
   .rh-ring { width: 104px; height: 104px; }
@@ -235,3 +237,13 @@ kbd { font-family: inherit; display: inline-block; min-width: 1.6em; padding: 1p
   .targets { display: none; }
   .lines { bottom: 120px; }
 }
+
+/* in the plan the launch pill owns the bottom centre, so lines sit above it */
+.toast.plan { bottom: 96px; }
+@media (max-width: 760px) { .toast.plan { bottom: auto; top: 76px; } }
+.result-card .got { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 10px; }
+.result-card .got span { background: rgba(255, 255, 255, 0.09); border-radius: 10px; padding: 4px 10px; font-size: 14px; }
+.result-card .got .ok { color: #9ff0b0; }
+.result-card .got .miss { color: #ffb4a8; }
+.touch-only { display: none; }
+@media (pointer: coarse) { .touch-only { display: block; } .keys-only { display: none; } .pour small { display: none; } }

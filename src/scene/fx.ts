@@ -162,7 +162,7 @@ export class Fx {
   }
 
   /** Tutorial wind arrows on a grid around a point (levels 1–2 only). */
-  setArrows(cells: readonly PressureCell[] | null, cx: number, cy: number, liftY: number) {
+  setArrows(cells: readonly PressureCell[] | null, cx: number, cy: number, liftY: number, size = 1) {
     if (!cells) { this.arrows.count = 0; return; }
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3();
     const up = new THREE.Vector3(0, 0, 1);
@@ -177,7 +177,7 @@ export class Fx {
         const sp = Math.hypot(w.u, w.v);
         if (sp < 0.15) continue;
         q.setFromUnitVectors(up, new THREE.Vector3(w.u / sp, 0, -w.v / sp));
-        const sc = 0.9 + Math.min(1.4, sp * 0.45);
+        const sc = (0.9 + Math.min(1.4, sp * 0.45)) * size;
         s.set(sc, sc, sc);
         p.set(x, surfaceY(x, y) + liftY, -y);
         m.compose(p, q, s);

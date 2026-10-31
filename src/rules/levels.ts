@@ -335,8 +335,8 @@ export const LEVELS: LevelDef[] = [
     },
     evaluateAtEnd: true,
     storms: [
-      winter({ label: 'הסערה מגיעה', T0: 6.5, hour: 15, night: true, lightning: true, cells: [H(5, 285, 1.2, 80)], start: { x: 40, y: 300 }, duration: 75 }),
-      winter({ label: 'הסערה בצפון', T0: 6.5, hour: 15, night: true, lightning: true, cells: [H(40, 380, 1.2, 70), L(205, 470, 1.4, 80)], start: { x: 76, y: 402 }, duration: 75 }),
+      winter({ label: 'הסערה מגיעה', T0: 6.5, hour: 15, lightning: true, cells: [H(5, 285, 1.2, 80)], start: { x: 40, y: 300 }, duration: 75 }),
+      winter({ label: 'הסערה בצפון', T0: 6.5, hour: 15, lightning: true, cells: [H(40, 380, 1.2, 70), L(205, 470, 1.4, 80)], start: { x: 76, y: 402 }, duration: 75 }),
     ],
     targets: [
       { id: 'coast', he: 'החוף', kind: 'rain', icon: 'city', zones: [at('telaviv', 8, 3, -2)], need: 6, storms: [0] },

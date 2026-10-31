@@ -51,7 +51,8 @@ npm run dev        # http://localhost:5241
 npm test                      # 102 node:test tests: all 18 levels, wrong plans fail, rain/snow by height,
                               # H→L wind, rain shadow, water conservation, curriculum map
 npx tsx scripts/tune.ts       # per-level table: solution, naive pilots, alternative plans
-node scripts/shots.mjs               # real browser captures into tmp/shots (local only, git-ignored)
+node scripts/shots.mjs        # real browser captures into tmp/shots (local only, git-ignored)
+node scripts/playtest.mjs     # 125 browser checks against the dev server; captures in tmp/playtest
 ```
 
 ## Docs

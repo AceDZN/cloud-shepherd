@@ -1,7 +1,7 @@
 // Hebrew explanation lines. Every number comes from the run; numbers sit in <bdi> so RTL never flips them.
-import { cellInfluence, landSeaContrast } from '../rules/atmosphere.ts';
+import { cellInfluence, landSeaContrast, type PrecipKind } from '../rules/atmosphere.ts';
 import type { Feedback, Run } from '../rules/sim.ts';
-import { stars, waterBalance } from '../rules/sim.ts';
+import { inZones, stars, waterBalance } from '../rules/sim.ts';
 import type { FailReason, Target } from '../rules/types.ts';
 
 export const n0 = (v: number) => `<bdi class="num">${Math.round(v)}</bdi>`;
@@ -41,6 +41,18 @@ export function feedbackLine(run: Run, f: Feedback): string | null {
       return 'הגשם ירד מחוץ ליעד.';
   }
   return null;
+}
+
+/** A flight hint: a question about the cause, never the route. */
+export function flightHintLine(run: Run): string {
+  const c = run.cloud;
+  const sinking = c.surface === 'land' && c.ground < c.hEnv - 60;
+  const open = run.level.targets.filter((t) => (run.progress[t.id] ?? 0) < t.need);
+  const overTarget = open.some((t) => inZones(t.zones, c.x, c.y));
+  if (sinking) return 'אתם בצד המוסתר של ההר: האוויר יורד ומתחמם. איזה צד של ההר פונה אל הרוח?';
+  if (c.rh >= 0.995) return overTarget ? 'האוויר רווי ואתם מעל היעד: המטירו!' : 'האוויר רווי. החצים מראים לאן הרוח נושבת: איך תגיעו ליעד בלי לרדת במורד?';
+  if (c.surface !== 'land' && c.rh < 0.92) return 'מעל מים חמים ענני סופג אדים. כמה מים יש לכם לפני שתפנו ליבשה?';
+  return 'כדי להגיע ל-100% האוויר צריך להתקרר. איפה הרוח (בחצים) תדחוף אתכם במעלה מדרון, או אל שקע (ל)?';
 }
 
 /** What the air is doing right now and why (the live cause line). */
@@ -101,4 +113,23 @@ export function resultSummary(run: Run) {
 
 export function unitFor(t: Target) {
   return t.kind === 'shade' ? 'שנ\'' : 'מ"מ';
+}
+
+const KIND_HE: Record<PrecipKind, string> = { rain: 'גשם', slush: 'גשם מעורב בשלג', snow: 'שלג' };
+
+/** Each kind of precipitation that fell, in cloud water units (only kinds that fell). */
+export function fellByKind(run: Run): string {
+  const parts = (['rain', 'slush', 'snow'] as PrecipKind[])
+    .filter((k) => run.pouredByKind[k] > 0.05)
+    .map((k) => `${KIND_HE[k]} <bdi class="num">${run.pouredByKind[k].toFixed(1)}</bdi>`);
+  return parts.length ? parts.join(' · ') : 'לא ירד כלום';
+}
+
+/** What each target received, in its own unit (מ"מ on the ground). */
+export function targetResults(run: Run): { he: string; got: string; ok: boolean }[] {
+  return run.level.targets.map((t) => ({
+    he: t.he,
+    got: `<bdi class="num">${Math.round(run.progress[t.id] ?? 0)}/${Math.round(t.need)}</bdi> ${unitFor(t)}`,
+    ok: met(run, t),
+  }));
 }

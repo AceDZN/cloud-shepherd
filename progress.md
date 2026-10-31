@@ -22,17 +22,24 @@ Original prompt: build Cloud Shepherd (רועה העננים), a 3D weather/Isra
   - `assets.ts`: GLB loader with procedural fallbacks.
   - `world.ts`: renderer, sky, tilt-shift, mood.
 - **Game** (`src/game/`): `game.ts` (states, HUD, plan, camera, input, test hooks), `explain.ts` (Hebrew cause and feedback lines), `audio.ts`, `progress.ts`.
+- **Visual review** (`VISUAL_REVIEW.md`): the ranked fixes are applied. The cloud has a fresnel rim and an inner lightning glow, the HUD has altitude and temperature bars, the plan has a big bottom-centre launch button and larger coins, and the farmer, snow kids and lifeguard are staged at their targets.
+- **Playtest fixes:** Enter only presses the screen's own primary button; hints show the wind and ask about the cause instead of drawing the route or marking the slot; level 18 at 15:00 is daylight; the result card lists each target in מ"מ and every kind that fell; phones show height and temperature inside the RH ring.
 - **Test hooks:** `window.render_game_to_text()`, `window.advanceTime(ms)`, `__game.quickStart(id, plan)` and `__game.pilot`, used by `scripts/shots.mjs`.
 
 ## Checks (latest)
 
 - `npm test`: 102/102 pass.
 - `npx tsc --noEmit`: clean.
+- `node scripts/playtest.mjs`: 125/125 browser checks pass (all 18 levels won by the solution pilot in the real loop, naive pilots fail, acceptance, keys, UI, mobile, progress, text). See PLAYTEST.md.
 - Real browser captures (16 scenes, no console errors) are kept locally in `tmp/shots/` (git-ignored; screenshots are never committed).
 - Level 1 acceptance: the cloud soaks to 95 %, climbs the Carmel, hits 100 % at about 9 s, pours, and wins at about 12 s.
 - Level 2 acceptance: pouring at 90 % delivers 0 mm and shows one line: "הלחות היחסית רק 90%…".
 
 ## Open items / limits
+
+- 16 early captures (about 9 MB) were committed in `docs/shots/` (commit 9984ae6) before the no-screenshots rule was applied. They are removed from the tree, but they remain in git history; purging them needs a force push, which was not done.
+- Not fixed from the playtest: place labels can slide under HUD panels (levels 7, 18); the dry-pour line keeps the RH of the key press.
+- On steep slopes (level 10) the target ring reads as a raised lip rather than paint on the ground.
 
 - Solver-generated seasons after level 18 (optional in the handoff) are not built.
 - Ambience is synthesized only; there is no recorded audio.

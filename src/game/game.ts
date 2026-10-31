@@ -17,7 +17,7 @@ import { Props, makeToken } from '../scene/props.ts';
 import { Terrain, surfaceY } from '../scene/terrain.ts';
 import { World, toWorldY } from '../scene/world.ts';
 import { Sound } from './audio.ts';
-import { causeLine, deg, failLine, feedbackLine, n0, pct, resultSummary, unitFor } from './explain.ts';
+import { causeLine, deg, failLine, feedbackLine, fellByKind, flightHintLine, n0, pct, resultSummary, targetResults, unitFor } from './explain.ts';
 import { progress } from './progress.ts';
 import { postToHost } from '../host.ts';
 
@@ -67,6 +67,7 @@ export class Game {
   private hintUsed = false;
   private hintSlot: string | null = null;
   private hintT = 0;
+  private planPreview = false;
   private fbIdx = 0;
   private evIdx = 0;
   private line = { html: '', t: 0, prio: 0 };
@@ -77,7 +78,6 @@ export class Game {
   private arrowsT = 0;
   private replayT = 0;
   private replayObj: THREE.Group | null = null;
-  private routeLine: THREE.Line | null = null;
   private flightCellsShown = '';
 
   // DOM
@@ -197,6 +197,7 @@ export class Game {
     this.plan = { ...defaultPlan(level), tokens: [] };
     this.hintUsed = false;
     this.hintSlot = null;
+    this.planPreview = false;
     this.terrain.reset();
     this.props.buildLevel(level);
     this.props.showFixedTokens(level.storms[0].cells);
@@ -215,9 +216,11 @@ export class Game {
         <ul class="intro-targets">${t.map((x) => `<li>${this.targetBadge(x.kind)} ${x.he}: ${x.max !== undefined ? `<bdi class="num">${x.need}–${x.max}</bdi>` : `<bdi class="num">${x.need}</bdi>`} ${unitFor(x)}</li>`).join('')}</ul>
         ${level.storms.length > 1 ? `<p class="fine">${level.storms.length} סערות. ${level.storms[0].mmScale ? `כל סערה מייצגת חודש או חורף שלם (ערכים מוקטנים).` : ''}</p>` : ''}
         ${!progress.seenControls ? `<div class="controls-help">
-          <div><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> / גרירה: היטו את ענני לצדי הרוח</div>
-          <div><kbd>רווח</kbd> / כפתור: להמטיר (רק באוויר רווי)</div>
-          <div><kbd>Shift</kbd>: נשיפה לצד · <kbd>P</kbd> השהיה · <kbd>F</kbd> הרצה מהירה</div>
+          <div class="keys-only"><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd>: היטו את ענני לצדי הרוח</div>
+          <div class="keys-only"><kbd>רווח</kbd>: להמטיר (רק באוויר רווי)</div>
+          <div class="keys-only"><kbd>Shift</kbd>: נשיפה לצד · <kbd>P</kbd> השהיה · <kbd>F</kbd> הרצה מהירה</div>
+          <div class="touch-only">גררו על המפה: היטו את ענני לצדי הרוח</div>
+          <div class="touch-only">החזיקו את הכפתור 💧: להמטיר (רק באוויר רווי) · 💨 נשיפה לצד</div>
           <div class="fine">אי אפשר לטוס נגד הרוח: היא תמיד נושבת מהרמה (ג) אל השקע (ל).</div></div>` : ''}
         <button class="btn primary" data-act="go">${this.needsPlan(level) ? 'לתכנון' : 'יוצאים!'}</button>
       </div>`, 'intro');
@@ -265,6 +268,7 @@ export class Game {
 
   private renderPlanPanel() {
     const l = this.level!;
+    this.refreshPlanPreview();
     const p = l.plan;
     const kinds: CellKind[] = (['L', 'H'] as CellKind[]).filter((k) => (p.tokens?.[k] ?? 0) > 0);
     if (kinds.length && !kinds.includes(this.selectedKind)) this.selectedKind = kinds[0];
@@ -316,18 +320,22 @@ export class Game {
   private planHint() {
     const l = this.level!;
     this.hintUsed = true;
-    const sol = l.solution.plan;
-    const tk = sol.tokens[0];
-    let msg = '';
-    if (tk) {
-      this.hintSlot = tk.slot;
-      this.props.setSlotsVisible(true, this.hintSlot);
-      msg = 'הטבעת הירוקה: חשבו לאן תזרום הרוח אם יהיה שם שקע. האם היא תעבור מעל היעד?';
-    } else if (sol.hour !== undefined) {
-      msg = 'מתי היבשה חמה הרבה יותר מהים? אז נוצר שקע מעל היבשה.';
-    }
-    this.showLine(msg, 3);
+    // preview the wind of the player's own plan; never mark the answer slot
+    this.planPreview = true;
+    this.refreshPlanPreview();
+    this.showLine(l.solution.plan.tokens.length
+      ? 'החצים: הרוח של התוכנית שלכם עכשיו. האם היא נושבת מהים, מעל היעד ובמעלה ההר?'
+      : 'החצים: הרוח בשעה שבחרתם. מתי היבשה חמה הרבה יותר מהים? אז נוצר שקע מעל היבשה.', 3);
     this.sound.click();
+  }
+
+  private refreshPlanPreview() {
+    const l = this.level;
+    if (!l || !this.planPreview || this.mode !== 'plan') { this.fx.setArrows(null, 0, 0, 0); return; }
+    const env = l.storms[0];
+    const cells = effectiveCells(l, { ...env, hour: this.plan.hour ?? env.hour }, this.plan);
+    const z = l.targets[0]?.zones[0] ?? env.start;
+    this.fx.setArrows(cells, z.x, z.y, 4, 1.8);
   }
 
   /** Capture/test hook: place the selected token on a slot by id (same path as a click). */
@@ -428,7 +436,7 @@ export class Game {
       <div class="targets" data-k="targets"></div>
       <div class="gauges">
         <div class="rh-ring" data-k="rhring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="trk"/><circle cx="50" cy="50" r="42" class="val" data-k="rharc"/></svg>
-          <div class="rh-in"><b data-k="rh"></b><span>לחות יחסית</span></div></div>
+          <div class="rh-in"><b data-k="rh"></b><span>לחות יחסית</span><small class="rh-mini" data-k="mini"></small></div></div>
         <div class="bars">
           <div class="vbar alt" title="גובה"><i class="ground" data-k="altground"></i><i class="mark" data-k="altmark"></i><span>גובה</span></div>
           <div class="vbar temp" title="טמפרטורה"><i class="fill" data-k="tempfill"></i><i class="zero" data-k="tempzero"></i><span>°C</span></div>
@@ -513,17 +521,9 @@ export class Game {
     const r = this.run;
     if (!r || !this.level?.hints) return;
     r.hintUsed = true;
+    // show the wind around the cloud and ask about the cause; never draw the route
     this.hintT = 8;
-    const route = this.level.solution.routes[r.storm] ?? [];
-    if (this.routeLine) this.world.scene.remove(this.routeLine);
-    const pts = [new THREE.Vector3(r.cloud.x, toWorldY(r.cloud.z) + 1, -r.cloud.y)];
-    for (const p of route) pts.push(new THREE.Vector3(p.x, Math.max(0, surfaceY(p.x, p.y)) + 3, -p.y));
-    const curve = new THREE.CatmullRomCurve3(pts);
-    this.routeLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(80)),
-      new THREE.LineDashedMaterial({ color: '#5dff8a', dashSize: 1.2, gapSize: 0.8, transparent: true, opacity: 0.9 }));
-    this.routeLine.computeLineDistances();
-    this.world.scene.add(this.routeLine);
-    this.showLine('הקו הירוק: דרך אפשרית. שימו לב איפה האוויר עולה ומתקרר.', 2);
+    this.showLine(flightHintLine(r), 2);
   }
 
   /** Capture/test hook: a scripted pilot that presses the same inputs a player can. */
@@ -611,7 +611,7 @@ export class Game {
     this.flightCellsShown = '';
     const c = r.cloud;
     this.heading = Math.atan2(c.wind.u || 0.01, c.wind.v || 0);
-    if (this.routeLine) { this.world.scene.remove(this.routeLine); this.routeLine = null; }
+    this.hintT = 0;
   }
 
   private dust = 0;
@@ -634,7 +634,7 @@ export class Game {
     if (e) { e.innerHTML = html; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); }
     if (this.mode === 'plan') {
       this.toast.innerHTML = html;
-      this.toast.className = 'toast';
+      this.toast.className = 'toast plan';
       this.line.t = 5;
     }
   }
@@ -665,6 +665,7 @@ export class Game {
     q('rhring')?.classList.toggle('full', c.excess > 0);
     set('alt', `<bdi class="num">${Math.round(c.z / 10) * 10}</bdi> מ'`);
     set('temp', deg(c.T));
+    set('mini', `<bdi class="num">${Math.round(c.z / 10) * 10}</bdi> מ' · ${deg(c.T)}`);
     // bars: 0–2,600 m and −10…35 °C
     const altPct = (m: number) => `${THREE.MathUtils.clamp(m / 2600, 0, 1) * 100}%`;
     const tPct = (t: number) => THREE.MathUtils.clamp((t + 10) / 45, 0, 1);
@@ -755,7 +756,7 @@ export class Game {
     this.arrowsT -= dt;
     if (this.arrowsT <= 0) {
       this.arrowsT = 0.4;
-      this.fx.setArrows(r.level.showArrows ? r.cells : null, c.x, c.y, 2.2);
+      this.fx.setArrows(r.level.showArrows || this.hintT > 0 ? r.cells : null, c.x, c.y, 2.2);
     }
     this.fx.update(dt, r.cells, { x: c.x, y: c.y }, toWorldY(c.z) + 0.5 - Math.max(0, surfaceY(c.x, c.y)));
     // targets
@@ -787,10 +788,7 @@ export class Game {
     if (this.camGoalPos.y < minY) this.camGoalPos.y = minY;
     this.camGoalLook.set(cp.x + fx * 7, cp.y - 1.5, cp.z - fy * 7);
     this.world.aimSun(cp);
-    if (this.routeLine) {
-      this.hintT -= dt;
-      if (this.hintT <= 0) { this.world.scene.remove(this.routeLine); this.routeLine = null; }
-    }
+    if (this.hintT > 0) this.hintT -= dt;
   }
 
   // ───────────────────────── result & replay ─────────────────────────
@@ -806,20 +804,20 @@ export class Game {
     const next = LEVELS.find((x) => x.id === l.id + 1);
     this.hud.className = 'hud hidden';
     const why = won ? l.success : failLine(r, r.failReason!);
-    const kinds = r.pouredByKind;
-    const totalP = kinds.rain + kinds.slush + kinds.snow;
     this.setOverlay(`
       <div class="result-card ${won ? 'won' : 'lost'}">
         <h2>${won ? 'הצלחה!' : 'עוד ניסיון'}</h2>
         ${won ? `<div class="stars">${[0, 1, 2].map((i) => `<span class="${i < s.stars ? 'on' : ''}" style="animation-delay:${0.2 + i * 0.25}s">★</span>`).join('')}</div>` : ''}
         <p class="why">${why}</p>
+        ${won && !next ? `<p class="why">☁ סיימתם את כל <bdi class="num">18</bdi> השלבים! ענני רעה את העננים מהים, מעל ההרים ועד הכנרת: כך מגיע החורף לישראל.</p>` : ''}
+        <div class="got">${targetResults(r).map((t) => `<span class="${t.ok ? 'ok' : 'miss'}">${t.ok ? '✓' : '✗'} ${t.he}: ${t.got}</span>`).join('')}</div>
         <div class="balance">
-          <div><span>ענני ספג</span><b><bdi class="num">${s.absorbed.toFixed(1)}</bdi></b></div>
-          <div><span>ירד ${totalP > 0 ? (kinds.snow > kinds.rain ? 'כשלג' : 'כגשם') : ''}</span><b><bdi class="num">${s.poured.toFixed(1)}</bdi></b></div>
+          <div><span>ענני ספג אדים</span><b><bdi class="num">${s.absorbed.toFixed(1)}</bdi></b></div>
+          <div><span>ירד מהענן</span><b><bdi class="num">${s.poured.toFixed(1)}</bdi></b></div>
           <div><span>חזר לאוויר</span><b><bdi class="num">${s.dissipated.toFixed(1)}</bdi></b></div>
           <div><span>נשאר בענן</span><b><bdi class="num">${s.held.toFixed(1)}</bdi></b></div>
         </div>
-        <div class="fine">יחידות מים מפושטות (ג'/מ"ק). כל מה שנספג נמצא באחד מהטורים, שום מים לא נעלמים.
+        <div class="fine">ירד: ${fellByKind(r)}<br>מאזן המים של הענן ביחידות מפושטות (לא מ"מ על הקרקע). כל מה שנספג נמצא באחד מהטורים, שום מים לא נעלמים.
         ${won ? `<br>★ ניצחון · ★ פחות מ־<bdi class="num">30%</bdi> גשם מחוץ ליעד (עכשיו ${pct(s.wastedPct)}) · ★ בלי רמז, שיטפון או חמסין` : ''}</div>
         <div class="row">
           <button class="btn" data-act="replay">שחזור המסלול</button>
@@ -841,7 +839,6 @@ export class Game {
 
   private clearReplay() {
     if (this.replayObj) { this.world.scene.remove(this.replayObj); this.replayObj = null; }
-    if (this.routeLine) { this.world.scene.remove(this.routeLine); this.routeLine = null; }
   }
 
   private startReplay() {
@@ -1034,8 +1031,9 @@ export class Game {
         else if (code === 'KeyH') this.flightHint();
         else if (code === 'KeyM') this.toggleMute();
       } else if (code === 'Enter') {
-        (this.overlay.querySelector('.btn.primary') as HTMLButtonElement | null)?.click()
-          ?? (this.launchEl.querySelector('[data-act=launch]') as HTMLButtonElement | null)?.click();
+        const btn = (this.overlay.querySelector('.btn.primary') as HTMLButtonElement | null)
+          ?? (this.mode === 'plan' ? this.launchEl.querySelector('[data-act=launch]') as HTMLButtonElement | null : null);
+        btn?.click();
       } else if (code === 'KeyM') this.toggleMute();
       else if (this.mode === 'plan' && (code === 'Digit1' || code === 'Digit2')) {
         this.selectedKind = code === 'Digit1' ? 'L' : 'H';
