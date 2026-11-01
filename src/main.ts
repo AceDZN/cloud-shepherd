@@ -68,12 +68,16 @@ if (!webglOk()) {
   game
     .init((f) => (msg.textContent = `טוען את המפה… ${Math.round(f * 100)}%`))
     .then(() => {
-      postToHost({ type: 'ready' });
       // Workbook lesson links open a level directly (?level=N), even one still locked in this save.
       const lv = parseLevelParam(location.search, LEVELS.length);
-      if (lv !== null) game.loadLevel(LEVELS[lv].id);
+      if (lv !== null) game.loadLevel(LEVELS[lv].id, false);
       boot.remove();
-      requestAnimationFrame(frame);
+      requestAnimationFrame((t) => {
+        frame(t);
+        // the first scene has rendered: tell the host, then announce a deep-linked level
+        postToHost({ type: 'ready' });
+        if (lv !== null) game.announceLevel();
+      });
     })
     .catch((err) => {
       msg.textContent = 'שגיאה בטעינה';

@@ -14,7 +14,7 @@ npm run dev        # http://localhost:5241
 ```
 
 - `npm run build` typechecks and builds to `dist/`; `npm run preview` serves it on port 4241.
-- `?level=N` opens level N directly. The Workbook player uses this, and the game posts `ready`, `level-start` and `level-complete` to a Workbook parent frame (`src/host.ts`).
+- `?level=N` opens level N's intro directly, even when locked. The Workbook player uses this, and the game posts `ready`, `level-start` and `level-complete` to a Workbook parent frame (`src/host.ts`). Catalog entry and poster: [workbook/](workbook/LEVELS.md).
 - Progress (best stars) is stored only in this browser's localStorage. There are no accounts, no network calls and no analytics.
 
 ### Controls
@@ -53,6 +53,7 @@ npm test                      # 102 node:test tests: all 18 levels, wrong plans 
 npx tsx scripts/tune.ts       # per-level table: solution, naive pilots, alternative plans
 node scripts/shots.mjs        # real browser captures into tmp/shots (local only, git-ignored)
 node scripts/playtest.mjs     # 125 browser checks against the dev server; captures in tmp/playtest
+npm run build && npm run test:embed   # workbook bridge in a real iframe: ready → level-start → level-complete
 ```
 
 ## Docs

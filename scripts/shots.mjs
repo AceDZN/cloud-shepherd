@@ -91,6 +91,18 @@ const scenes = {
     await shot(p, '09-l3-plan');
     await p.close();
   },
+  /** The workbook catalog poster (a game asset, not a playtest capture): 1600×900 JPEG, HUD hidden. */
+  async poster() {
+    const p = await open([1600, 900]);
+    await fly(p, 7);
+    await until(p, (s) => s.cloud?.pouring && s.cloud.precip === 'snow' && s.targets[1].value > 6, 90);
+    await p.addStyleTag({ content: '.hud, .lines, .toast { display: none !important; }' });
+    await p.evaluate(() => window.advanceTime(16));
+    mkdirSync('workbook', { recursive: true });
+    await p.screenshot({ path: 'workbook/poster.jpg', type: 'jpeg', quality: Number(process.env.Q ?? 93) });
+    console.log('poster workbook/poster.jpg');
+    await p.close();
+  },
   async l7() {
     const p = await open();
     await fly(p, 7);

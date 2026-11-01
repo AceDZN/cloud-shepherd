@@ -20,6 +20,7 @@ import { Sound } from './audio.ts';
 import { causeLine, deg, failLine, feedbackLine, fellByKind, flightHintLine, n0, pct, resultSummary, targetResults, unitFor } from './explain.ts';
 import { progress } from './progress.ts';
 import { postToHost } from '../host.ts';
+import { routePilot } from '../rules/autopilot.ts';
 
 export type Mode = 'title' | 'levels' | 'intro' | 'plan' | 'flight' | 'result' | 'replay';
 
@@ -68,6 +69,8 @@ export class Game {
   private hintSlot: string | null = null;
   private hintT = 0;
   private planPreview = false;
+  private levelOpenedAt = 0;
+  private reported = false;
   private fbIdx = 0;
   private evIdx = 0;
   private line = { html: '', t: 0, prio: 0 };
@@ -190,10 +193,13 @@ export class Game {
     this.sound.silence();
   }
 
-  loadLevel(id: number) {
+  /** Opens a level. `announce: false` lets boot post `ready` first, then call announceLevel(). */
+  loadLevel(id: number, announce = true) {
     const level = levelById(id);
     this.leaveLevel();
     this.level = level;
+    this.levelOpenedAt = performance.now();
+    if (announce) this.announceLevel();
     this.plan = { ...defaultPlan(level), tokens: [] };
     this.hintUsed = false;
     this.hintSlot = null;
@@ -407,7 +413,12 @@ export class Game {
     this.camBlend = 0;
     this.buildHud();
     this.applyMood(this.run.env);
-    postToHost({ type: 'level-start', level: l.id });
+    this.reported = false;
+  }
+
+  /** Workbook bridge: an authored level has opened. */
+  announceLevel() {
+    if (this.level) postToHost({ type: 'level-start', level: this.level.id });
   }
 
   /** Before the first step: look from the start toward the first target. */
@@ -528,6 +539,11 @@ export class Game {
 
   /** Capture/test hook: a scripted pilot that presses the same inputs a player can. */
   pilot: ((run: Run) => Input) | null = null;
+
+  /** Test hook (embed test on the built game): fly the open level's authored solution route. */
+  autopilot() {
+    if (this.level) this.pilot = routePilot(this.level.solution);
+  }
 
   /** Capture/test hook: open a level and launch it with a given plan. */
   quickStart(id: number, plan?: PlanChoice) {
@@ -834,7 +850,11 @@ export class Game {
     on('retry2', () => this.restart());
     on('next', () => this.loadLevel(next!.id));
     on('levels', () => this.showLevels());
-    if (won) postToHost({ type: 'level-complete', level: l.id, stars: s.stars, durationMs: Math.round(r.tTotal * 1000) });
+    // once per won run: coming back from the replay shows this card again
+    if (won && !this.reported) {
+      this.reported = true;
+      postToHost({ type: 'level-complete', level: l.id, stars: s.stars, durationMs: Math.round(performance.now() - this.levelOpenedAt) });
+    }
   }
 
   private clearReplay() {
